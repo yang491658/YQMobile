@@ -98,7 +98,7 @@ public class TestManager : MonoBehaviour
         if (GameManager.Instance.IsGameOver)
         {
             testCount++;
-            maxScore = Mathf.Max(GameManager.Instance.GetScore(), maxScore); ;
+            maxScore = Mathf.Max(GameManager.Instance.GetScore(), maxScore);
             GameManager.Instance?.Replay();
         }
         autoRoutine = null;
