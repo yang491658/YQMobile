@@ -1651,6 +1651,7 @@ MonoBehaviour:
   countStart: 3
   countDuration: 1
   countScale: 10
+  countSkip: 1
   inGameUI: {fileID: 463422171}
   playTimeText: {fileID: 722285320}
   scoreNum: {fileID: 1222573071}
