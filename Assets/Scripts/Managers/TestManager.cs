@@ -162,7 +162,6 @@ public class TestManager : MonoBehaviour
             maxScore = Mathf.Max(score, maxScore);
             averageScore = ++testCount> 0 ? totalScore / testCount : 0;
 
-            ChangeGameSpeed(1f);
             UpdateTestUI();
 
             GameManager.Instance?.Replay();
@@ -206,7 +205,7 @@ public class TestManager : MonoBehaviour
         return v;
     }
 
-    private void ApplySlider(ref SliderConfig _config, float _value, System.Action<int> _afterChange = null)
+    private void ApplySlider(ref SliderConfig _config, float _value, System.Action<int> _afterAction = null)
     {
         _config.value = ChangeSlider(_value, _config);
 
@@ -215,7 +214,7 @@ public class TestManager : MonoBehaviour
         else
             _config.TMP.text = string.Format(_config.format, _config.value);
 
-        _afterChange?.Invoke(_config.value);
+        _afterAction?.Invoke(_config.value);
     }
 
     private void UpdateSliderUI(SliderConfig _config)
@@ -227,7 +226,7 @@ public class TestManager : MonoBehaviour
 
         _config.slider.value = _config.value;
     }
-    private void ChangeGameSpeed(float _value) => ApplySlider(ref gameSpeed, _value, v => Time.timeScale = v);
+    private void ChangeGameSpeed(float _value) => ApplySlider(ref gameSpeed, _value, v => GameManager.Instance.SetSpeed(v, true));
 
     private void UpdateTestUI()
     {
@@ -243,5 +242,17 @@ public class TestManager : MonoBehaviour
         testUI.SetActive(!testUI.activeSelf);
         UpdateTestUI();
     }
+    public void OnClickReset()
+    {
+        testCount = 0;
+        maxScore = 0;
+        totalScore = 0;
+        averageScore = 0;
+
+        gameSpeed.value = gameSpeed.minValue;
+
+        UpdateTestUI();
+    }
+    public void OnClickReplay() => GameManager.Instance?.Replay();
     #endregion
 }
