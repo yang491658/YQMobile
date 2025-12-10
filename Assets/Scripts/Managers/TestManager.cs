@@ -249,6 +249,8 @@ public class TestManager : MonoBehaviour
         totalScore = 0;
         averageScore = 0;
 
+        gameSpeed.value = gameSpeed.minValue;
+
         UpdateTestUI();
     }
     public void OnClickReplay() => GameManager.Instance?.Replay();
