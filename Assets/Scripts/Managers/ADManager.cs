@@ -103,7 +103,7 @@ public class ADManager : MonoBehaviour
             bannerHeight = 0f;
         }
 
-        UIManager.Instance?.SetInGameUI(bannerHeight);
+        UIManager.Instance?.SetMargin(bannerHeight);
     }
 
     private void RegisterBanner()
@@ -112,12 +112,12 @@ public class ADManager : MonoBehaviour
         banner.OnBannerAdLoaded += () =>
         {
             UpdateBannerHeight();
-            UIManager.Instance?.SetInGameUI(bannerHeight);
+            UIManager.Instance?.SetMargin(bannerHeight);
         };
         banner.OnBannerAdLoadFailed += _ =>
         {
             bannerHeight = 0f;
-            UIManager.Instance?.SetInGameUI(bannerHeight);
+            UIManager.Instance?.SetMargin(bannerHeight);
         };
         banner.OnAdPaid += _ => { };
         banner.OnAdImpressionRecorded += () => { };

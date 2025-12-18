@@ -42,7 +42,9 @@ public static class ManagerEditor
             typeof(HandleManager),
             typeof(UIManager),
             typeof(ADManager),
+#if TEST_Manager
             typeof(TestManager),
+#endif
             typeof(AutoCamera),
             typeof(AutoUICanvas),
             typeof(AutoBackground),
@@ -94,10 +96,39 @@ public static class ManagerEditor
         }
     }
 
+    private const string TestDefineSymbol = "TEST_Manager";
+
+    private static void SetTestDefine(BuildTargetGroup _group, bool _on)
+    {
+        var named = UnityEditor.Build.NamedBuildTarget.FromBuildTargetGroup(_group);
+
+        string symbols = PlayerSettings.GetScriptingDefineSymbols(named);
+
+        var list = new System.Collections.Generic.List<string>(
+            symbols.Split(new[] { ';', ',', ' ' }, StringSplitOptions.RemoveEmptyEntries)
+        );
+
+        bool contains = list.Contains(TestDefineSymbol);
+        if (_on)
+        {
+            if (!contains) list.Add(TestDefineSymbol);
+        }
+        else
+        {
+            if (contains) list.Remove(TestDefineSymbol);
+        }
+
+        string newSymbols = string.Join(";", list.ToArray());
+        PlayerSettings.SetScriptingDefineSymbols(named, newSymbols);
+    }
+
     private static void SetTestActive(bool _on)
     {
+#if TEST_Manager
         SetActive<TestManager>(_on, "테스트 켜기", "테스트 끄기");
+#endif
         SetBtnActive("TestBtn", _on, "테스트 버튼 켜기", "테스트 버튼 끄기");
+        SetTestDefine(BuildTargetGroup.Android, _on);
     }
 
     private static void SetQuitActive(bool _on)
@@ -135,34 +166,64 @@ public static class ManagerEditor
     #endregion
 
     #region 빌드
+    private static void SetAndroidBuildTarget(bool _useAppBundle)
+    {
+        var group = BuildTargetGroup.Android;
+        var target = BuildTarget.Android;
+
+        if (EditorUserBuildSettings.activeBuildTarget != target)
+            EditorUserBuildSettings.SwitchActiveBuildTargetAsync(group, target);
+
+        EditorUserBuildSettings.buildAppBundle = _useAppBundle;
+    }
+
+    private static void SetWebGLBuildTarget()
+    {
+        var group = BuildTargetGroup.WebGL;
+        var target = BuildTarget.WebGL;
+
+        if (EditorUserBuildSettings.activeBuildTarget != target)
+            EditorUserBuildSettings.SwitchActiveBuildTargetAsync(group, target);
+    }
+
     private static void PrepareTest()
     {
+        SetAndroidBuildTarget(false);
+
         SetActive<UIManager>(true, "UI 켜기", "UI 끄기");
         SetActive<ADManager>(false, "광고 켜기", "광고 끄기");
+
         SetTestActive(true);
         SetQuitActive(true);
 
-        FindSingle<UIManager>()?.SetCountdown(true);
+        FindSingle<UIManager>()?.SetSkipCountdown(true);
     }
 
     private static void PrepareAndroid()
     {
+        SetAndroidBuildTarget(true);
+
         SetActive<UIManager>(true, "UI 켜기", "UI 끄기");
         SetActive<ADManager>(true, "광고 켜기", "광고 끄기");
+
+
         SetTestActive(false);
         SetQuitActive(true);
 
-        FindSingle<UIManager>()?.SetCountdown(false);
+        FindSingle<UIManager>()?.SetSkipCountdown(false);
     }
 
     private static void PrepareWebGL()
     {
+        SetWebGLBuildTarget();
+
         SetActive<UIManager>(true, "UI 켜기", "UI 끄기");
         SetActive<ADManager>(false, "광고 켜기", "광고 끄기");
+
         SetTestActive(false);
         SetQuitActive(false);
 
-        FindSingle<UIManager>()?.SetCountdown(false);
+        FindSingle<UIManager>()?.SetSkipCountdown(false);
     }
 
     [MenuItem("Tools/Test 빌드 준비", true)]
@@ -205,6 +266,7 @@ public static class ManagerEditor
     private static void ADsOff() => SetActive<ADManager>(false, "광고 켜기", "광고 끄기");
     #endregion
 
+#if TEST_Manager
     #region 테스트
     [MenuItem("Tools/테스트 켜기", true)]
     private static bool TestsOnValidate() => IsPlaying() && !AnyActive<TestManager>();
@@ -216,6 +278,7 @@ public static class ManagerEditor
     [MenuItem("Tools/테스트 끄기", false, 402)]
     private static void TestsOff() => SetTestActive(false);
     #endregion
+#endif
 
     #region 종료
     [MenuItem("Tools/종료 버튼 켜기", true)]

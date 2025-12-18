@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿#if TEST_Manager
+using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -139,13 +140,13 @@ public class TestManager : MonoBehaviour
         {
             if (Input.GetKeyDown(KeyCode.UpArrow))
                 ChangeGameSpeed(gameSpeed.value == gameSpeed.maxValue ? GameManager.Instance.GetMaxSpeed() : gameSpeed.maxValue);
-            else if (Input.GetKeyDown(KeyCode.DownArrow))
+            if (Input.GetKeyDown(KeyCode.DownArrow))
                 ChangeGameSpeed(gameSpeed.value == gameSpeed.minValue ? GameManager.Instance.GetMaxSpeed() : gameSpeed.minValue);
         }
         else
         {
             if (Input.GetKeyDown(KeyCode.UpArrow)) ChangeGameSpeed(++gameSpeed.value);
-            else if (Input.GetKeyDown(KeyCode.DownArrow)) ChangeGameSpeed(--gameSpeed.value);
+            if (Input.GetKeyDown(KeyCode.DownArrow)) ChangeGameSpeed(--gameSpeed.value);
         }
         #endregion
     }
@@ -257,3 +258,4 @@ public class TestManager : MonoBehaviour
     public void OnClickReplay() => GameManager.Instance?.Replay();
     #endregion
 }
+#endif
