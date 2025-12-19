@@ -128,26 +128,20 @@ public class TestManager : MonoBehaviour
         #endregion
 
         #region 테스트 매니저
+        if (Input.GetKeyDown(KeyCode.BackQuote)) OnClickTest();
         if (Input.GetKeyDown(KeyCode.O)) AutoPlay();
         if (isAuto)
+        {
             if (GameManager.Instance.IsGameOver)
             {
                 if (autoRoutine == null)
                     autoRoutine = StartCoroutine(AutoReplay());
             }
-        if (Input.GetKeyDown(KeyCode.BackQuote)) OnClickTest();
-        if (Input.GetKey(KeyCode.RightShift))
-        {
-            if (Input.GetKeyDown(KeyCode.UpArrow))
-                ChangeGameSpeed(gameSpeed.value == gameSpeed.maxValue ? GameManager.Instance.GetMaxSpeed() : gameSpeed.maxValue);
-            if (Input.GetKeyDown(KeyCode.DownArrow))
-                ChangeGameSpeed(gameSpeed.value == gameSpeed.minValue ? GameManager.Instance.GetMaxSpeed() : gameSpeed.minValue);
         }
-        else
-        {
-            if (Input.GetKeyDown(KeyCode.UpArrow)) ChangeGameSpeed(++gameSpeed.value);
-            if (Input.GetKeyDown(KeyCode.DownArrow)) ChangeGameSpeed(--gameSpeed.value);
-        }
+        if (Input.GetKeyDown(KeyCode.LeftArrow))
+            ChangeGameSpeed(gameSpeed.value == gameSpeed.minValue ? GameManager.Instance.GetMaxSpeed() : gameSpeed.minValue);
+        if (Input.GetKeyDown(KeyCode.RightArrow))
+            ChangeGameSpeed(gameSpeed.value == gameSpeed.maxValue ? GameManager.Instance.GetMaxSpeed() : gameSpeed.maxValue);
         #endregion
     }
 
