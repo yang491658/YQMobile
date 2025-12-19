@@ -151,6 +151,11 @@ public class TestManager : MonoBehaviour
         isAuto = _on;
 
         GameManager.Instance?.SetSpeed(_on ? GameManager.Instance.GetMaxSpeed() : 1f);
+
+        if (_on)
+        {
+            GameManager.Instance.Replay();
+        }
     }
 
     private IEnumerator AutoReplay()
