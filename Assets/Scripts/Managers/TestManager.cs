@@ -138,10 +138,10 @@ public class TestManager : MonoBehaviour
                     autoRoutine = StartCoroutine(AutoReplay());
             }
         }
-        if (Input.GetKeyDown(KeyCode.LeftArrow))
-            ChangeGameSpeed(gameSpeed.value == gameSpeed.minValue ? GameManager.Instance.GetMaxSpeed() : gameSpeed.minValue);
-        if (Input.GetKeyDown(KeyCode.RightArrow))
+        if (Input.GetKeyDown(KeyCode.UpArrow))
             ChangeGameSpeed(gameSpeed.value == gameSpeed.maxValue ? GameManager.Instance.GetMaxSpeed() : gameSpeed.maxValue);
+        if (Input.GetKeyDown(KeyCode.DownArrow))
+            ChangeGameSpeed(gameSpeed.value == gameSpeed.minValue ? GameManager.Instance.GetMaxSpeed() : gameSpeed.minValue);
         #endregion
     }
 
