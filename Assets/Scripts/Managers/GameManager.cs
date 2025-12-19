@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Threading;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 
 #if UNITY_WEBGL && !UNITY_EDITOR
@@ -67,6 +68,10 @@ public class GameManager : MonoBehaviour
         UIManager.Instance?.ResetUI();
         UIManager.Instance?.OpenUI(false);
         UIManager.Instance?.StartCountdown();
+
+#if TEST_Manager
+        if (TestManager.Instance.IsAuto) TestManager.Instance.AutoPlay();
+#endif
     }
 
     #region 진행
