@@ -101,7 +101,7 @@ public class UIManager : MonoBehaviour
             resultScoreNum = GameObject.Find("ResultUI/Score/ScoreNum")?.GetComponent<TextMeshProUGUI>();
     }
 
-    static private void LoadSprite(List<Sprite> _list, string _sprite)
+    private static void LoadSprite(List<Sprite> _list, string _sprite)
     {
         if (string.IsNullOrEmpty(_sprite)) return;
         string[] guids = AssetDatabase.FindAssets("t:Sprite", new[] { "Assets/Imports/Dark UI/Icons" });
