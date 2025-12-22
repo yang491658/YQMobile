@@ -165,7 +165,16 @@ public static class ManagerEditor
     #endregion
 
     #region 빌드
-    private static void SetAndroidBuildTarget(bool _useAppBundle)
+    private static void SetWindowsBuild()
+    {
+        var group = BuildTargetGroup.Standalone;
+        var target = BuildTarget.StandaloneWindows64;
+
+        if (EditorUserBuildSettings.activeBuildTarget != target)
+            EditorUserBuildSettings.SwitchActiveBuildTargetAsync(group, target);
+    }
+
+    private static void SetAndroidBuild(bool _useAppBundle)
     {
         var group = BuildTargetGroup.Android;
         var target = BuildTarget.Android;
@@ -176,7 +185,7 @@ public static class ManagerEditor
         EditorUserBuildSettings.buildAppBundle = _useAppBundle;
     }
 
-    private static void SetWebGLBuildTarget()
+    private static void SetWebBuild()
     {
         var group = BuildTargetGroup.WebGL;
         var target = BuildTarget.WebGL;
@@ -187,26 +196,31 @@ public static class ManagerEditor
 
     private static void PrepareTest()
     {
-        SetAndroidBuildTarget(false);
+        SetWindowsBuild();
 
         SetActive<UIManager>(true, "UI 켜기", "UI 끄기");
         SetActive<ADManager>(false, "광고 켜기", "광고 끄기");
 
-        SetTestDefine(BuildTargetGroup.Android, true);
+        SetTestDefine(BuildTargetGroup.Standalone, true);
+        SetTestDefine(BuildTargetGroup.Android, false);
+        SetTestDefine(BuildTargetGroup.WebGL, false);
         SetTestActive(true);
         SetQuitActive(true);
 
         FindSingle<UIManager>()?.SetSkipCountdown(true);
     }
 
+
     private static void PrepareAndroid()
     {
-        SetAndroidBuildTarget(true);
+        SetAndroidBuild(true);
 
         SetActive<UIManager>(true, "UI 켜기", "UI 끄기");
         SetActive<ADManager>(true, "광고 켜기", "광고 끄기");
 
+        SetTestDefine(BuildTargetGroup.Standalone, false);
         SetTestDefine(BuildTargetGroup.Android, false);
+        SetTestDefine(BuildTargetGroup.WebGL, false);
         SetTestActive(false);
         SetQuitActive(true);
 
@@ -215,11 +229,12 @@ public static class ManagerEditor
 
     private static void PrepareWebGL()
     {
-        SetWebGLBuildTarget();
+        SetWebBuild();
 
         SetActive<UIManager>(true, "UI 켜기", "UI 끄기");
         SetActive<ADManager>(false, "광고 켜기", "광고 끄기");
 
+        SetTestDefine(BuildTargetGroup.Standalone, false);
         SetTestDefine(BuildTargetGroup.Android, false);
         SetTestDefine(BuildTargetGroup.WebGL, false);
         SetTestActive(false);
