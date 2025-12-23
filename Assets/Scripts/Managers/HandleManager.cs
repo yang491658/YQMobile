@@ -24,7 +24,7 @@ public class HandleManager : MonoBehaviour
     private Vector3 dragCurrent;
     private bool isOverUI;
 
-#if UNITY_EDITOR
+#if UNITY_EDITOR || UNITY_STANDALONE_WIN
     [Header("Mark")]
     private float markDuration = 1f;
     private float markRadius = 0.5f;
@@ -56,7 +56,7 @@ public class HandleManager : MonoBehaviour
     {
         if (GameManager.Instance.IsPaused) return;
 
-#if UNITY_EDITOR
+#if UNITY_EDITOR || UNITY_STANDALONE_WIN
         HandleMouse();
         DrawDebug();
 #else
@@ -64,7 +64,7 @@ public class HandleManager : MonoBehaviour
 #endif
     }
 
-#if UNITY_EDITOR
+#if UNITY_EDITOR || UNITY_STANDALONE_WIN
     private void HandleMouse()
     {
         if (Input.GetMouseButtonDown(0)) HandleBegin(Input.mousePosition);
@@ -260,7 +260,7 @@ public class HandleManager : MonoBehaviour
         Debug.Log($"드래그 종료 : {_start} → {_end}"); // TODO : 드래그 종료 동작
     }
 
-#if UNITY_EDITOR
+#if UNITY_EDITOR || UNITY_STANDALONE_WIN
     private void OnRightClick(Vector3 _pos)
     {
         Debug.Log($"우클릭 : {_pos}"); // TODO : 우클릭 동작
