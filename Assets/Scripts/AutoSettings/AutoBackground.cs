@@ -11,6 +11,8 @@ public class AutoBackground : MonoBehaviour
 #if UNITY_EDITOR
     private void OnValidate()
     {
+        cam = Camera.main;
+        sr = GetComponent<SpriteRenderer>();
         if (enabled) Fit();
     }
 #endif
