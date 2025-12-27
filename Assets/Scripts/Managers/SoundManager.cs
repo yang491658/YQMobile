@@ -210,7 +210,7 @@ public class SoundManager : MonoBehaviour
         sfxSource.volume = sfxVol;
         sfxSource.mute = isMuted;
 
-        sfxLoops.RemoveWhere(src => src == null);
+        sfxLoops.RemoveWhere(_src => _src == null);
 
         foreach (var src in sfxLoops)
         {
