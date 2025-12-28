@@ -32,14 +32,14 @@ public class TestManager : MonoBehaviour
     [Header("Game Test")]
     [SerializeField][Min(0)] private int testCount = 0;
     [SerializeField][Min(0)] private int maxScore = 0;
-    private int totalScore = 0;
+    [SerializeField][Min(0)] private int totalScore = 0;
     [SerializeField][Min(0)] private int averageScore = 0;
-
-    private float totalPlay = 0f;
+    [Space]
+    [SerializeField][Min(0)] private float totalPlay = 0f;
     [SerializeField][Min(0f)] private float averagePlay = 0f;
-
-    public bool IsAuto { private set; get; } = false;
+    [Space]
     [SerializeField][Min(0f)] private float autoReplay = 0f;
+    public bool IsAuto { private set; get; } = false;
     private Coroutine autoRoutine;
 
     [Header("Sound Test")]
