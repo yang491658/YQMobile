@@ -1,8 +1,22 @@
 ﻿#if TEST_Manager
 using System.Collections;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+
+[System.Serializable]
+public struct TestResult
+{
+    [Min(0)] public int score;
+    [Min(0f)] public float playTime;
+
+    public TestResult(int _score, float _playTime)
+    {
+        score = _score;
+        playTime = _playTime;
+    }
+}
 
 [System.Serializable]
 public struct SliderConfig
@@ -30,13 +44,7 @@ public class TestManager : MonoBehaviour
     public static TestManager Instance { private set; get; }
 
     [Header("Game Test")]
-    [SerializeField][Min(0)] private int testCount = 0;
-    [SerializeField][Min(0)] private int maxScore = 0;
-    [SerializeField][Min(0)] private int totalScore = 0;
-    [SerializeField][Min(0)] private int averageScore = 0;
-    [Space]
-    [SerializeField][Min(0)] private float totalPlay = 0f;
-    [SerializeField][Min(0f)] private float averagePlay = 0f;
+    [SerializeField] private List<TestResult> testResults = new List<TestResult>();
     [Space]
     [SerializeField][Min(0f)] private float autoReplay = 0f;
     public bool IsAuto { private set; get; } = false;
@@ -163,16 +171,13 @@ public class TestManager : MonoBehaviour
     private IEnumerator AutoReplay()
     {
         yield return new WaitForSecondsRealtime(autoReplay);
+
         if (GameManager.Instance.IsGameOver)
         {
             int score = GameManager.Instance.GetScore();
-            totalScore += score;
-            maxScore = Mathf.Max(score, maxScore);
-            averageScore = totalScore / ++testCount;
-
             float playTime = UIManager.Instance.GetPlayTime();
-            totalPlay += playTime;
-            averagePlay = totalPlay / testCount;
+
+            testResults.Add(new TestResult(score, playTime));
 
             GameManager.Instance?.Replay();
 
@@ -238,9 +243,40 @@ public class TestManager : MonoBehaviour
 
     private void UpdateTestUI()
     {
-        testCountNum.text = testCount.ToString();
+        int count = testResults.Count;
+
+        int maxScore = 0;
+        int totalScore = 0;
+        float totalPlay = 0f;
+        double scoreSqSum = 0d;
+
+        for (int i = 0; i < count; i++)
+        {
+            TestResult r = testResults[i];
+
+            totalScore += r.score;
+            totalPlay += r.playTime;
+
+            if (r.score > maxScore) maxScore = r.score;
+
+            scoreSqSum += (double)r.score * r.score;
+        }
+
+        int averageScore = count > 0 ? totalScore / count : 0;
+        float averagePlay = count > 0 ? totalPlay / count : 0f;
+
+        int stdScore = 0;
+        if (count > 1)
+        {
+            double meanScore = (double)totalScore / count;
+            double varScore = scoreSqSum / count - meanScore * meanScore;
+            if (varScore < 0d) varScore = 0d;
+            stdScore = Mathf.RoundToInt(Mathf.Sqrt((float)varScore));
+        }
+
+        testCountNum.text = count.ToString();
         maxScoreNum.text = maxScore.ToString();
-        averageScoreNum.text = averageScore.ToString();
+        averageScoreNum.text = $"{averageScore:#,0} ({stdScore:#,0})";
         averagePlayNum.text = (averagePlay / 60).ToString("00") + ":" + (averagePlay % 60).ToString("00");
 
         UpdateSliderUI(gameSpeed);
@@ -253,12 +289,7 @@ public class TestManager : MonoBehaviour
     }
     public void OnClickReset()
     {
-        testCount = 0;
-        maxScore = 0;
-        totalScore = 0;
-        averageScore = 0;
-        totalPlay = 0f;
-        averagePlay = 0f;
+        testResults.Clear();
 
         UpdateTestUI();
     }
