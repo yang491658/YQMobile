@@ -265,18 +265,19 @@ public class TestManager : MonoBehaviour
         int averageScore = count > 0 ? totalScore / count : 0;
         float averagePlay = count > 0 ? totalPlay / count : 0f;
 
-        int stdScore = 0;
+        double cvScore = 0d;
         if (count > 1)
         {
             double meanScore = (double)totalScore / count;
             double varScore = scoreSqSum / count - meanScore * meanScore;
             if (varScore < 0d) varScore = 0d;
-            stdScore = Mathf.RoundToInt(Mathf.Sqrt((float)varScore));
+            double stdScore = System.Math.Sqrt(varScore);
+            cvScore = meanScore != 0d ? (stdScore / meanScore) * 100d : 0d;
         }
 
         testCountNum.text = count.ToString();
         maxScoreNum.text = maxScore.ToString();
-        averageScoreNum.text = $"{averageScore:#,0} ({stdScore:#,0})";
+        averageScoreNum.text = $"{averageScore:#,0} ({cvScore:0.#}%)";
         averagePlayNum.text = (averagePlay / 60).ToString("00") + ":" + (averagePlay % 60).ToString("00");
 
         UpdateSliderUI(gameSpeed);
