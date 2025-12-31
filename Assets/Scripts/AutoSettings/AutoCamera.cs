@@ -51,14 +51,14 @@ public class AutoCamera : MonoBehaviour
         lastW = cw; lastH = ch;
         if (ch == 0) return;
 
-        float currentAspect = (float)lastW / lastH;
+        float currentAspect = (float)cw / ch;
         float size = baseSize * (RefAspect / currentAspect);
         size = Mathf.Max(size, minSize);
         cam.orthographicSize = size;
 
         OrthoSize = size;
         float worldH = size * 2f;
-        float worldW = worldH * cam.aspect;
+        float worldW = worldH * currentAspect;
         Vector3 pos = cam.transform.position;
         WorldRect = new Rect(pos.x - worldW * 0.5f, pos.y - worldH * 0.5f, worldW, worldH);
 
