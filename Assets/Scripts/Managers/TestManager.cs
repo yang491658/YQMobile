@@ -263,13 +263,20 @@ public class TestManager : MonoBehaviour
             scoreSqSum += (double)r.score * r.score;
         }
 
-        int top10 = 0; int bottom10 = 0;
+        int topAvg = 0; int bottomAvg = 0;
         if (count > 0)
         {
             scores.Sort();
             int group = Mathf.Max(1, Mathf.CeilToInt(count * 0.1f));
-            bottom10 = scores[group - 1];
-            top10 = scores[count - group];
+
+            long sumBottom = 0;
+            for (int i = 0; i < group; i++) sumBottom += scores[i];
+
+            long sumTop = 0;
+            for (int i = count - group; i < count; i++) sumTop += scores[i];
+
+            bottomAvg = Mathf.RoundToInt((float)sumBottom / group);
+            topAvg = Mathf.RoundToInt((float)sumTop / group);
         }
 
         int averageScore = count > 0 ? totalScore / count : 0;
@@ -290,7 +297,7 @@ public class TestManager : MonoBehaviour
         int seconds = totalSeconds % 60;
 
         testCountNum.text = count.ToString();
-        score10Num.text = $"{top10:#,0} / {bottom10:#,0}";
+        score10Num.text = $"{topAvg:#,0} / {bottomAvg:#,0}";
         averageScoreNum.text = $"{averageScore:#,0} ({cvScore:0.#}%)";
         averagePlayNum.text = minutes.ToString("00") + ":" + seconds.ToString("00");
 
