@@ -267,7 +267,7 @@ public class TestManager : MonoBehaviour
         if (count > 0)
         {
             scores.Sort();
-            int group = Mathf.Max(1, Mathf.CeilToInt(count * 0.1f));
+            int group = Mathf.Max(Mathf.CeilToInt(count * 0.1f), 1);
 
             long sumBottom = 0;
             for (int i = 0; i < group; i++) sumBottom += scores[i];
