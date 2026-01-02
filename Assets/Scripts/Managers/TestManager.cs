@@ -59,7 +59,7 @@ public class TestManager : MonoBehaviour
     [SerializeField] private SliderConfig gameSpeed = new SliderConfig(1, 1, 10, "배속 × {0}");
     [Space]
     [SerializeField] private TextMeshProUGUI testCountNum;
-    [SerializeField] private TextMeshProUGUI maxScoreNum;
+    [SerializeField] private TextMeshProUGUI score10Num;
     [SerializeField] private TextMeshProUGUI averageScoreNum;
     [SerializeField] private TextMeshProUGUI averagePlayNum;
 
@@ -76,8 +76,8 @@ public class TestManager : MonoBehaviour
 
         if (testCountNum == null)
             testCountNum = GameObject.Find("TestUI/TestCount/TestNum")?.GetComponent<TextMeshProUGUI>();
-        if (maxScoreNum == null)
-            maxScoreNum = GameObject.Find("TestUI/MaxScore/TestNum")?.GetComponent<TextMeshProUGUI>();
+        if (score10Num == null)
+            score10Num = GameObject.Find("TestUI/Score10/TestNum")?.GetComponent<TextMeshProUGUI>();
         if (averageScoreNum == null)
             averageScoreNum = GameObject.Find("TestUI/AverageScore/TestNum")?.GetComponent<TextMeshProUGUI>();
         if (averagePlayNum == null)
@@ -248,7 +248,7 @@ public class TestManager : MonoBehaviour
     {
         int count = testResults.Count;
 
-        int maxScore = 0;
+        List<int> scores = new List<int>(count);
         int totalScore = 0;
         float totalPlay = 0f;
         double scoreSqSum = 0d;
@@ -257,12 +257,19 @@ public class TestManager : MonoBehaviour
         {
             TestResult r = testResults[i];
 
+            scores.Add(r.score);
             totalScore += r.score;
             totalPlay += r.playTime;
-
-            if (r.score > maxScore) maxScore = r.score;
-
             scoreSqSum += (double)r.score * r.score;
+        }
+
+        int top10 = 0; int bottom10 = 0;
+        if (count > 0)
+        {
+            scores.Sort();
+            int group = Mathf.Max(1, Mathf.CeilToInt(count * 0.1f));
+            bottom10 = scores[group - 1];
+            top10 = scores[count - group];
         }
 
         int averageScore = count > 0 ? totalScore / count : 0;
@@ -278,10 +285,14 @@ public class TestManager : MonoBehaviour
             cvScore = meanScore != 0d ? (stdScore / meanScore) * 100d : 0d;
         }
 
+        int totalSeconds = Mathf.RoundToInt(averagePlay);
+        int minutes = totalSeconds / 60;
+        int seconds = totalSeconds % 60;
+
         testCountNum.text = count.ToString();
-        maxScoreNum.text = maxScore.ToString();
+        score10Num.text = $"{top10:#,0} / {bottom10:#,0}";
         averageScoreNum.text = $"{averageScore:#,0} ({cvScore:0.#}%)";
-        averagePlayNum.text = (averagePlay / 60).ToString("00") + ":" + (averagePlay % 60).ToString("00");
+        averagePlayNum.text = minutes.ToString("00") + ":" + seconds.ToString("00");
 
         UpdateSliderUI(gameSpeed);
     }
