@@ -229,7 +229,7 @@ public class ADManager : MonoBehaviour
         if (reward != null && reward.CanShowAd())
         {
             OnCloseReward = _onClosed;
-            reward.Show(_ => OnReward(_));
+            reward.Show(OnReward);
         }
         else
         {
