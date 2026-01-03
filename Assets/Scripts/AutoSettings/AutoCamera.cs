@@ -48,6 +48,7 @@ public class AutoCamera : MonoBehaviour
         int cw = Screen.width;
         int ch = Screen.height;
         if (!_force && cw == lastW && ch == lastH) return;
+
         lastW = cw; lastH = ch;
         if (ch == 0) return;
 
