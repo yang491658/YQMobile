@@ -70,7 +70,7 @@ public class GameManager : MonoBehaviour
         UIManager.Instance?.StartCountdown();
 
 #if TEST_Manager
-        if (TestManager.Instance.IsAuto) TestManager.Instance.SetAuto();
+        if (TestManager.Instance.IsAuto) TestManager.Instance?.SetAuto();
 #endif
     }
 
