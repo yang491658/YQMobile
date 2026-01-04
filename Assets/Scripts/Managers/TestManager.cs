@@ -182,7 +182,6 @@ public class TestManager : MonoBehaviour
         if (GameManager.Instance.IsGameOver)
         {
             int score = GameManager.Instance.GetScore();
-            float playTime = UIManager.Instance.GetPlayTime();
 
             testResults.Add(new TestResult(score, playTime));
             playTime = 0f;
