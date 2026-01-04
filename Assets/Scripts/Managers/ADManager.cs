@@ -109,6 +109,7 @@ public class ADManager : MonoBehaviour
     private void RegisterBanner()
     {
         if (banner == null) return;
+
         banner.OnBannerAdLoaded += () =>
         {
             UpdateBannerHeight();

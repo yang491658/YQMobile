@@ -11,16 +11,14 @@ public class AutoBackground : MonoBehaviour
 #if UNITY_EDITOR
     private void OnValidate()
     {
-        cam = Camera.main;
-        sr = GetComponent<SpriteRenderer>();
+        Init();
         if (enabled) Fit();
     }
 #endif
 
     private void Awake()
     {
-        cam = Camera.main;
-        sr = GetComponent<SpriteRenderer>();
+        Init();
         Fit();
     }
 
@@ -36,9 +34,14 @@ public class AutoBackground : MonoBehaviour
 
     private void OnEnable()
     {
+        Init();
+        Fit();
+    }
+
+    private void Init()
+    {
         cam = Camera.main;
         sr = GetComponent<SpriteRenderer>();
-        Fit();
     }
 
     private void Fit()
