@@ -57,8 +57,9 @@ public class AutoBackground : MonoBehaviour
         float ppu = sp.pixelsPerUnit;
         if (ppu <= 0f) return;
 
-        float worldW = AutoCamera.WorldRect.width;
-        float worldH = AutoCamera.WorldRect.height;
+        Rect worldRect = AutoCamera.WorldRect;
+        float worldW = worldRect.width;
+        float worldH = worldRect.height;
 
         float spriteW = sp.rect.width / ppu;
         float spriteH = sp.rect.height / ppu;
@@ -74,7 +75,8 @@ public class AutoBackground : MonoBehaviour
         transform.localScale = new Vector3(localX, localY, (localX + localY) / 2f);
 
         var b = sr.bounds;
-        Vector3 camCenter = new Vector3(AutoCamera.WorldRect.center.x, AutoCamera.WorldRect.center.y, cam.transform.position.z);
+        Vector2 center2D = worldRect.center;
+        Vector3 camCenter = new Vector3(center2D.x, center2D.y, cam.transform.position.z);
         Vector3 delta = new Vector3(camCenter.x - b.center.x, camCenter.y - b.center.y, 0f);
         transform.position += delta;
     }

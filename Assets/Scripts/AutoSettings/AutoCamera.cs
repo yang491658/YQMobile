@@ -64,7 +64,7 @@ public class AutoCamera : MonoBehaviour
         WorldRect = new Rect(pos.x - worldW * 0.5f, pos.y - worldH * 0.5f, worldW, worldH);
 
         float delta = size - baseSize;
-        if (Mathf.Abs(delta - SizeDelta) > 1e-5f)
+        if (!Mathf.Approximately(delta, SizeDelta))
         {
             SizeDelta = delta;
         }
