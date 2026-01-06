@@ -1,5 +1,6 @@
 ﻿#if UNITY_EDITOR
 using System;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -17,7 +18,7 @@ public static class ManagerEditor
         EditorSceneManager.MarkSceneDirty(_comp.gameObject.scene);
     }
 
-    private static void ResetAll(Type _type)
+    private static void ResetManager(Type _type)
     {
         var _objs = UnityEngine.Object.FindObjectsByType(
             _type, FindObjectsInactive.Include, FindObjectsSortMode.None
@@ -29,12 +30,112 @@ public static class ManagerEditor
         }
     }
 
-    [MenuItem("Tools/스크립트 초기화", true)]
-    private static bool ResetManagers_Validate() => IsPlaying();
-    [MenuItem("Tools/스크립트 초기화", false, 1)]
-    private static void ResetManagers()
+    private static bool ResetComponents(GameObject _root, Type[] _types)
     {
-        var _types = new Type[]
+        bool _changed = false;
+
+        for (int t = 0; t < _types.Length; t++)
+        {
+            Type _type = _types[t];
+            if (_type == null) continue;
+
+            Component[] _comps = _root.GetComponentsInChildren(_type, true);
+            if (_comps.Length == 0) continue;
+
+            _changed = true;
+
+            for (int i = 0; i < _comps.Length; i++)
+            {
+                Component _comp = _comps[i];
+                if (_comp == null) continue;
+
+                Unsupported.SmartReset(_comp);
+                EditorUtility.SetDirty(_comp);
+            }
+        }
+
+        return _changed;
+    }
+
+    private static void ResetPrefabs(Type[] _types)
+    {
+        string[] _searchFolders = { "Assets/Prefabs" };
+        string[] _guids = AssetDatabase.FindAssets("t:Prefab", _searchFolders);
+
+        var _changedPaths = new List<string>(_guids.Length);
+
+        var _stage = PrefabStageUtility.GetCurrentPrefabStage();
+        string _stagePath = (_stage != null) ? _stage.assetPath : null;
+
+        AssetDatabase.StartAssetEditing();
+        try
+        {
+            for (int i = 0; i < _guids.Length; i++)
+            {
+                string _path = AssetDatabase.GUIDToAssetPath(_guids[i]);
+                if (string.IsNullOrEmpty(_path)) continue;
+
+                if (_stage != null && _stagePath == _path)
+                {
+                    GameObject _root = _stage.prefabContentsRoot;
+                    if (_root == null) continue;
+
+                    if (!ResetComponents(_root, _types)) continue;
+
+                    EditorUtility.SetDirty(_root);
+                    EditorSceneManager.MarkSceneDirty(_stage.scene);
+
+                    bool _success;
+                    PrefabUtility.SaveAsPrefabAsset(_root, _path, out _success);
+                    if (_success) _changedPaths.Add(_path);
+
+                    continue;
+                }
+
+                GameObject _prefabRoot = PrefabUtility.LoadPrefabContents(_path);
+                if (_prefabRoot == null) continue;
+
+                try
+                {
+                    if (!ResetComponents(_prefabRoot, _types)) continue;
+
+                    EditorUtility.SetDirty(_prefabRoot);
+
+                    bool _success;
+                    PrefabUtility.SaveAsPrefabAsset(_prefabRoot, _path, out _success);
+                    if (_success) _changedPaths.Add(_path);
+                }
+                finally
+                {
+                    PrefabUtility.UnloadPrefabContents(_prefabRoot);
+                }
+            }
+        }
+        finally
+        {
+            AssetDatabase.StopAssetEditing();
+        }
+
+        for (int i = 0; i < _changedPaths.Count; i++)
+        {
+            string _path = _changedPaths[i];
+            AssetDatabase.ImportAsset(
+                _path,
+                ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport
+            );
+        }
+
+        AssetDatabase.Refresh();
+        ActiveEditorTracker.sharedTracker.ForceRebuild();
+        EditorApplication.RepaintProjectWindow();
+    }
+
+    [MenuItem("Tools/스크립트 초기화", true)]
+    private static bool ResetScripts_Validate() => IsPlaying();
+    [MenuItem("Tools/스크립트 초기화", false, 1)]
+    private static void ResetScripts()
+    {
+        var _managers = new Type[]
         {
             typeof(GameManager),
             typeof(SoundManager),
@@ -49,7 +150,12 @@ public static class ManagerEditor
             typeof(AutoUICanvas),
             typeof(AutoBackground),
         };
-        for (int i = 0; i < _types.Length; i++) ResetAll(_types[i]);
+        for (int i = 0; i < _managers.Length; i++) ResetManager(_managers[i]);
+
+        var _prefabs = new Type[]
+        {
+        };
+        ResetPrefabs(_prefabs);
     }
     #endregion
 
