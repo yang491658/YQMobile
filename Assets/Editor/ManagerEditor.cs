@@ -139,7 +139,9 @@ public static class ManagerEditor
         {
             typeof(GameManager),
             typeof(SoundManager),
+            typeof(DataManager),
             typeof(EntityManager),
+            typeof(PoolManager),
             typeof(HandleManager),
             typeof(UIManager),
             typeof(ADManager),
