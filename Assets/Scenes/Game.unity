@@ -5964,6 +5964,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   testResults: []
+  playTime: 0
   autoReplay: 0
   bgmPause: 0
   testUI: {fileID: 0}
