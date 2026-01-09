@@ -1,39 +1,57 @@
 ﻿using System.Collections.Generic;
+using Unity.Burst.Intrinsics;
 using UnityEngine;
 
 public interface IPoolable
 {
-    void OnSpawn();
-    void OnDespawn();
+    void OnSpawnPool();
+    void OnDespawnPool();
+    void ResetPool();
 }
 
 public class PoolManager : MonoBehaviour
 {
-    public static PoolManager Instance { get; private set; }
+    public static PoolManager Instance { private set; get; }
 
-    private struct Policy
+    [System.Serializable]
+    private class Policy
     {
-        public readonly int prewarm;
-        public readonly int keep;
-        public readonly int make;
-        public readonly bool skip;
+        [Min(0)] public int prewarm;
+        [Min(-1)] public int keep;
+        [Space]
+        [Min(0)] public int active;
+        [Min(0)] public int wait;
+        [Min(0)] public int peak;
 
-        public Policy(int _prewarm, int _keep, int _make, bool _skip)
+        public Policy(int _prewarm, int _keep)
         {
             prewarm = _prewarm;
             keep = _keep;
-            make = _make;
-            skip = _skip;
+
+            active = 0;
+            wait = 0;
+            peak = 0;
         }
     }
 
-    private readonly Dictionary<int, Stack<GameObject>> pool = new Dictionary<int, Stack<GameObject>>();
-    private readonly Dictionary<int, int> origin = new Dictionary<int, int>();
-    private readonly Dictionary<int, IPoolable[]> hook = new Dictionary<int, IPoolable[]>();
+    [Header("Policy")]
     private readonly Dictionary<int, Policy> policy = new Dictionary<int, Policy>();
-    private readonly Dictionary<int, int> made = new Dictionary<int, int>();
 
+    [Header("Pooling")]
+    private readonly Dictionary<int, int> origin = new Dictionary<int, int>();
+    private readonly Dictionary<int, Stack<GameObject>> pool = new Dictionary<int, Stack<GameObject>>();
+    private readonly Dictionary<int, int> make = new Dictionary<int, int>();
+    private readonly Dictionary<int, IPoolable[]> hook = new Dictionary<int, IPoolable[]>();
     private readonly List<GameObject> pending = new List<GameObject>();
+
+    [Header("Parent")]
+    private readonly Dictionary<int, Transform> parent = new Dictionary<int, Transform>();
+
+#if UNITY_EDITOR
+    private void OnValidate()
+    {
+    }
+#endif
 
     private void Awake()
     {
@@ -59,27 +77,32 @@ public class PoolManager : MonoBehaviour
             if (obj.activeSelf)
             { pending.RemoveAt(i); continue; }
 
-            obj.transform.SetParent(transform, false);
+            int id = obj.GetInstanceID();
+            obj.transform.SetParent(parent.TryGetValue(id, out var p) ? p : transform, false);
             pending.RemoveAt(i);
         }
+
+        UpdatePolicy();
     }
 
     #region 정책
-    public void Register(GameObject _prefab, int _prewarm, int _keep, int _make, bool _skip)
+    public void Init(GameObject _prefab)
     {
-        int key = _prefab.GetInstanceID();
-        policy[key] = new Policy(_prewarm, _keep, _make, _skip);
-    }
+        Policy p = GetPolicy(_prefab);
 
-    public void Prewarm(GameObject _prefab)
-    {
-        int key = _prefab.GetInstanceID();
-        if (!policy.TryGetValue(key, out var p)) return;
-
+        Register(_prefab, p);
         Prewarm(_prefab, p.prewarm);
     }
 
-    public void Prewarm(GameObject _prefab, int _count)
+    private void Register(GameObject _prefab, Policy _policy)
+    {
+        int key = _prefab.GetInstanceID();
+
+        policy[key] = _policy;
+        make[key] = 0;
+    }
+
+    private void Prewarm(GameObject _prefab, int _count)
     {
         int key = _prefab.GetInstanceID();
 
@@ -91,15 +114,6 @@ public class PoolManager : MonoBehaviour
 
         int need = _count - stack.Count;
         if (need <= 0) return;
-
-        if (policy.TryGetValue(key, out var p) && p.make > 0)
-        {
-            made.TryGetValue(key, out int cur);
-            int room = p.make - cur;
-
-            if (room <= 0) return;
-            if (need > room) need = room;
-        }
 
         for (int i = 0; i < need; i++)
         {
@@ -113,7 +127,22 @@ public class PoolManager : MonoBehaviour
     #endregion
 
     #region 풀링
-    public GameObject Get(GameObject _prefab, Vector3 _pos, Transform _parent)
+    private GameObject Create(GameObject _prefab, int _key)
+    {
+        GameObject obj = Instantiate(_prefab);
+        obj.SetActive(false);
+
+        int id = obj.GetInstanceID();
+
+        origin[id] = _key;
+        hook[id] = obj.GetComponentsInChildren<IPoolable>(true);
+
+        parent[id] = GetParent(obj);
+
+        return obj;
+    }
+
+    public GameObject Rent(GameObject _prefab, Vector3 _pos, Transform _parent = null)
     {
         int key = _prefab.GetInstanceID();
 
@@ -128,23 +157,24 @@ public class PoolManager : MonoBehaviour
             obj = stack.Pop();
 
         if (obj == null)
-        {
-            if (policy.TryGetValue(key, out var p) && p.make > 0)
-            {
-                made.TryGetValue(key, out int cur);
-
-                if (cur >= p.make && p.skip)
-                    return null;
-            }
-
             obj = Create(_prefab, key);
-        }
-
-        Transform t = obj.transform;
-        t.SetParent(_parent, false);
-        t.SetPositionAndRotation(_pos, Quaternion.identity);
 
         int id = obj.GetInstanceID();
+
+        Transform t = obj.transform;
+        Transform p0 = _parent != null
+            ? _parent
+            : (parent.TryGetValue(id, out var p1) ? p1 : transform);
+
+        t.SetParent(p0, false);
+        t.SetPositionAndRotation(_pos, Quaternion.identity);
+
+        make.TryGetValue(key, out int count);
+        make[key] = ++count;
+
+        if (policy.TryGetValue(key, out var p) && count > p.peak)
+            p.peak = count;
+
         CallSpawn(id);
         obj.SetActive(true);
 
@@ -156,10 +186,7 @@ public class PoolManager : MonoBehaviour
         int id = _obj.GetInstanceID();
 
         if (!origin.TryGetValue(id, out int key))
-        {
-            Destroy(_obj);
-            return;
-        }
+        { Destroy(_obj); return; }
 
         if (!pool.TryGetValue(key, out var stack))
         {
@@ -167,20 +194,27 @@ public class PoolManager : MonoBehaviour
             pool.Add(key, stack);
         }
 
+        if (make.TryGetValue(key, out int count) && count > 0)
+            make[key] = count - 1;
+
         CallDespawn(id);
 
         _obj.SetActive(false);
 
-        if (policy.TryGetValue(key, out var p) && p.keep > 0 && stack.Count >= p.keep)
+        if (policy.TryGetValue(key, out var p) && p.keep > 0)
         {
-            origin.Remove(id);
-            hook.Remove(id);
+            int alive = 0;
+            foreach (var o in stack) if (o != null) alive++;
 
-            made.TryGetValue(key, out int cur);
-            made[key] = cur - 1;
+            if (alive >= p.keep)
+            {
+                origin.Remove(id);
+                hook.Remove(id);
+                parent.Remove(id);
 
-            Destroy(_obj);
-            return;
+                Destroy(_obj);
+                return;
+            }
         }
 
         stack.Push(_obj);
@@ -188,29 +222,13 @@ public class PoolManager : MonoBehaviour
     }
     #endregion
 
-    #region 유틸
-    private GameObject Create(GameObject _prefab, int _key)
-    {
-        GameObject obj = Instantiate(_prefab);
-        obj.SetActive(false);
-
-        int id = obj.GetInstanceID();
-
-        origin[id] = _key;
-        hook[id] = obj.GetComponentsInChildren<IPoolable>(true);
-
-        made.TryGetValue(_key, out int cur);
-        made[_key] = cur + 1;
-
-        return obj;
-    }
-
+    #region Call
     private void CallSpawn(int _id)
     {
         if (!hook.TryGetValue(_id, out var list)) return;
 
         for (int i = 0; i < list.Length; i++)
-            list[i].OnSpawn();
+            list[i].OnSpawnPool();
     }
 
     private void CallDespawn(int _id)
@@ -218,7 +236,51 @@ public class PoolManager : MonoBehaviour
         if (!hook.TryGetValue(_id, out var list)) return;
 
         for (int i = 0; i < list.Length; i++)
-            list[i].OnDespawn();
+            list[i].OnDespawnPool();
+    }
+    #endregion
+
+    #region 유틸
+    private Policy GetPolicy(GameObject _prefab)
+    {
+        return default;
+    }
+
+    private Transform GetParent(GameObject _obj)
+    {
+        return transform;
+    }
+
+    private void UpdatePolicy()
+    {
+        foreach (var kv in make)
+        {
+            int key = kv.Key;
+
+            if (!policy.TryGetValue(key, out var p) || p == null)
+                continue;
+
+            int count = kv.Value;
+            if (count > 0) p.active += count;
+        }
+
+        foreach (var kv in pool)
+        {
+            int key = kv.Key;
+
+            if (!policy.TryGetValue(key, out var p) || p == null)
+                continue;
+
+            Stack<GameObject> stack = kv.Value;
+            if (stack == null || stack.Count == 0)
+                continue;
+
+            int alive = 0;
+            foreach (var o in stack)
+                if (o != null) alive++;
+
+            if (alive > 0) p.wait += alive;
+        }
     }
     #endregion
 }
