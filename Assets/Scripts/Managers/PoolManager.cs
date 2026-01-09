@@ -1,5 +1,5 @@
-﻿using System.Collections.Generic;
-using Unity.Burst.Intrinsics;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public interface IPoolable
@@ -17,20 +17,27 @@ public class PoolManager : MonoBehaviour
     private class Policy
     {
         [Min(0)] public int prewarm;
-        [Min(-1)] public int keep;
+        [Min(0)] public int limit;
+        [Min(0)] public int keep;
+
+#if TEST_Manager
         [Space]
         [Min(0)] public int active;
         [Min(0)] public int wait;
         [Min(0)] public int peak;
+#endif
 
-        public Policy(int _prewarm, int _keep)
+        public Policy(int _prewarm, int _limit, int _keep)
         {
             prewarm = _prewarm;
+            limit = _limit;
             keep = _keep;
 
+#if TEST_Manager
             active = 0;
             wait = 0;
             peak = 0;
+#endif
         }
     }
 
@@ -40,7 +47,7 @@ public class PoolManager : MonoBehaviour
     [Header("Pooling")]
     private readonly Dictionary<int, int> origin = new Dictionary<int, int>();
     private readonly Dictionary<int, Stack<GameObject>> pool = new Dictionary<int, Stack<GameObject>>();
-    private readonly Dictionary<int, int> make = new Dictionary<int, int>();
+    private readonly Dictionary<int, int> made = new Dictionary<int, int>();
     private readonly Dictionary<int, IPoolable[]> hook = new Dictionary<int, IPoolable[]>();
     private readonly List<GameObject> pending = new List<GameObject>();
 
@@ -65,6 +72,13 @@ public class PoolManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
+#if TEST_Manager
+    private void Update()
+    {
+        UpdateStatistics();
+    }
+#endif
+
     private void LateUpdate()
     {
         for (int i = pending.Count - 1; i >= 0; i--)
@@ -81,8 +95,6 @@ public class PoolManager : MonoBehaviour
             obj.transform.SetParent(parent.TryGetValue(id, out var p) ? p : transform, false);
             pending.RemoveAt(i);
         }
-
-        UpdatePolicy();
     }
 
     #region 정책
@@ -99,7 +111,7 @@ public class PoolManager : MonoBehaviour
         int key = _prefab.GetInstanceID();
 
         policy[key] = _policy;
-        make[key] = 0;
+        made[key] = 0;
     }
 
     private void Prewarm(GameObject _prefab, int _count)
@@ -136,7 +148,6 @@ public class PoolManager : MonoBehaviour
 
         origin[id] = _key;
         hook[id] = obj.GetComponentsInChildren<IPoolable>(true);
-
         parent[id] = GetParent(obj);
 
         return obj;
@@ -157,7 +168,24 @@ public class PoolManager : MonoBehaviour
             obj = stack.Pop();
 
         if (obj == null)
+        {
+            Policy pLimit = null;
+            policy.TryGetValue(key, out pLimit);
+
+            if (pLimit != null && pLimit.limit > 0)
+            {
+                made.TryGetValue(key, out int activeCount);
+
+                int waitCount = 0;
+                foreach (var o in stack)
+                    if (o != null) waitCount++;
+
+                if (activeCount + waitCount >= pLimit.limit)
+                    return null;
+            }
+
             obj = Create(_prefab, key);
+        }
 
         int id = obj.GetInstanceID();
 
@@ -169,11 +197,8 @@ public class PoolManager : MonoBehaviour
         t.SetParent(p0, false);
         t.SetPositionAndRotation(_pos, Quaternion.identity);
 
-        make.TryGetValue(key, out int count);
-        make[key] = ++count;
-
-        if (policy.TryGetValue(key, out var p) && count > p.peak)
-            p.peak = count;
+        made.TryGetValue(key, out int count);
+        made[key] = ++count;
 
         CallSpawn(id);
         obj.SetActive(true);
@@ -194,8 +219,8 @@ public class PoolManager : MonoBehaviour
             pool.Add(key, stack);
         }
 
-        if (make.TryGetValue(key, out int count) && count > 0)
-            make[key] = count - 1;
+        if (made.TryGetValue(key, out int count) && count > 0)
+            made[key] = count - 1;
 
         CallDespawn(id);
 
@@ -222,7 +247,7 @@ public class PoolManager : MonoBehaviour
     }
     #endregion
 
-    #region Call
+    #region 호출
     private void CallSpawn(int _id)
     {
         if (!hook.TryGetValue(_id, out var list)) return;
@@ -251,9 +276,10 @@ public class PoolManager : MonoBehaviour
         return transform;
     }
 
-    private void UpdatePolicy()
+#if TEST_Manager
+    private void UpdateStatistics()
     {
-        foreach (var kv in make)
+        foreach (var kv in made)
         {
             int key = kv.Key;
 
@@ -282,5 +308,6 @@ public class PoolManager : MonoBehaviour
             if (alive > 0) p.wait += alive;
         }
     }
+#endif
     #endregion
 }
