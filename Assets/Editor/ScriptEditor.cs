@@ -5,7 +5,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-public static class ManagerEditor
+public static class ScriptEditor
 {
     private static bool IsPlaying() => !EditorApplication.isPlaying;
 
