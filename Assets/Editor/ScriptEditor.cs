@@ -212,7 +212,7 @@ public static class ScriptEditor
 
         string symbols = PlayerSettings.GetScriptingDefineSymbols(named);
 
-        var list = new System.Collections.Generic.List<string>(
+        var list = new List<string>(
             symbols.Split(new[] { ';', ',', ' ' }, StringSplitOptions.RemoveEmptyEntries)
         );
 
