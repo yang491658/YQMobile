@@ -16,12 +16,12 @@ public class GameManager : MonoBehaviour
     [SerializeField][Min(0f)] private float maxSpeed = 3f;
     public event System.Action<float> OnChangeSpeed;
 
+    public bool IsPaused { private set; get; } = false;
+    public bool IsGameOver { private set; get; } = false;
+
     [Header("Score")]
     [SerializeField] private int score = 0;
     public event System.Action<int> OnChangeScore;
-
-    public bool IsPaused { private set; get; } = false;
-    public bool IsGameOver { private set; get; } = false;
 
 #if UNITY_WEBGL && !UNITY_EDITOR
     [DllImport("__Internal")] private static extern void GameOverReact();
@@ -162,6 +162,7 @@ public class GameManager : MonoBehaviour
     public float GetSpeed() => speed;
     public float GetMinSpeed() => minSpeed;
     public float GetMaxSpeed() => maxSpeed;
+
     public int GetScore() => score;
     #endregion
 }

@@ -155,7 +155,6 @@ public class UIManager : MonoBehaviour
         GameManager.Instance.OnChangeSpeed += UpdateSpeed;
         speedSlider.minValue = GameManager.Instance.GetMinSpeed();
         speedSlider.maxValue = GameManager.Instance.GetMaxSpeed();
-        speedSlider.wholeNumbers = false;
         speedSlider.value = GameManager.Instance.GetSpeed();
         speedSlider.onValueChanged.AddListener(GameManager.Instance.SetSpeed);
 
@@ -325,6 +324,7 @@ public class UIManager : MonoBehaviour
         onPlayTime = true;
         playTime = 0;
         playTimeSec = -1;
+
         UpdatePlayTime();
     }
 
@@ -428,11 +428,11 @@ public class UIManager : MonoBehaviour
 
 #if TEST_Manager
     #region GET
+    public float GetPlayTime() => playTime;
+
     public bool GetOnSetting() => settingUI.activeSelf;
     public bool GetOnConfirm() => confirmUI.activeSelf;
     public bool GetOnResult() => resultUI.activeSelf;
-
-    public float GetPlayTime() => playTime;
     #endregion
 #endif
 }

@@ -48,11 +48,12 @@ public class TestManager : MonoBehaviour
     [SerializeField][Min(0f)] private float playTime = 0f;
     [Space]
     [SerializeField][Min(0f)] private float autoReplay = 0f;
-    public bool IsAuto { private set; get; } = false;
     private Coroutine autoRoutine;
 
+    public bool IsAuto { private set; get; } = false;
+
     [Header("Sound Test")]
-    [SerializeField] private bool bgmPause = false;
+    [SerializeField] private bool onPauseBgm = false;
 
     [Header("Test UI")]
     [SerializeField] private GameObject testUI;
@@ -119,8 +120,8 @@ public class TestManager : MonoBehaviour
         #region 사운드 매니저
         if (Input.GetKeyDown(KeyCode.B))
         {
-            bgmPause = !bgmPause;
-            SoundManager.Instance?.PauseSound(bgmPause);
+            onPauseBgm = !onPauseBgm;
+            SoundManager.Instance?.PauseSound(onPauseBgm);
         }
         if (Input.GetKeyDown(KeyCode.M)) SoundManager.Instance?.ToggleBGM();
         if (Input.GetKeyDown(KeyCode.N)) SoundManager.Instance?.ToggleSFX();

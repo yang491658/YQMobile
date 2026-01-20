@@ -53,7 +53,7 @@ public class AutoBackground : MonoBehaviour
         lastAspect = cam.aspect;
         lastOrthoSize = cam.orthographicSize;
 
-        var sp = sr.sprite;
+        Sprite sp = sr.sprite;
         float ppu = sp.pixelsPerUnit;
         if (ppu <= 0f) return;
 
@@ -65,19 +65,18 @@ public class AutoBackground : MonoBehaviour
         float spriteH = sp.rect.height / ppu;
         if (spriteW <= 0f || spriteH <= 0f) return;
 
-        var parent = transform.parent;
+        Transform tr = transform;
+        Transform parent = tr.parent;
         Vector3 parentLossy = (parent != null) ? parent.lossyScale : Vector3.one;
         float parentScaleX = (parentLossy.x == 0f) ? 1f : parentLossy.x;
         float parentScaleY = (parentLossy.y == 0f) ? 1f : parentLossy.y;
 
         float localX = (worldW / spriteW) / parentScaleX;
         float localY = (worldH / spriteH) / parentScaleY;
-        transform.localScale = new Vector3(localX, localY, (localX + localY) / 2f);
+        tr.localScale = new Vector3(localX, localY, (localX + localY) / 2f);
 
-        var b = sr.bounds;
-        Vector2 center2D = worldRect.center;
-        Vector3 camCenter = new Vector3(center2D.x, center2D.y, cam.transform.position.z);
-        Vector3 delta = new Vector3(camCenter.x - b.center.x, camCenter.y - b.center.y, 0f);
-        transform.position += delta;
+        Bounds b = sr.bounds;
+        Vector2 center = worldRect.center;
+        tr.position += new Vector3(center.x - b.center.x, center.y - b.center.y, 0f);
     }
 }
