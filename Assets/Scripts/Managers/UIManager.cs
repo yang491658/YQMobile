@@ -426,13 +426,11 @@ public class UIManager : MonoBehaviour
     }
     #endregion
 
-#if TEST_Manager
     #region GET
-    public float GetPlayTime() => playTime;
-
+#if TEST_Manager
     public bool GetOnSetting() => settingUI.activeSelf;
     public bool GetOnConfirm() => confirmUI.activeSelf;
     public bool GetOnResult() => resultUI.activeSelf;
-    #endregion
 #endif
+    #endregion
 }

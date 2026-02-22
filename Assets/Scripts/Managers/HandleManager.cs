@@ -11,7 +11,7 @@ public class HandleManager : MonoBehaviour
     private LayerMask layer = 0;
 
     [Header("Click")]
-    private const float doubleClick = 0.25f;
+    [SerializeField] private float doubleClick = 0.25f;
     private bool isDoubleClick;
     private float clickTimer;
 
@@ -126,7 +126,7 @@ public class HandleManager : MonoBehaviour
             isDragging = false;
             dragStart = worldPos;
             dragCurrent = dragStart;
-#if UNITY_EDITOR
+#if UNITY_EDITOR || UNITY_STANDALONE_WIN
             dragPath.Clear();
             dragPath.Add(dragStart);
 #endif
@@ -135,7 +135,7 @@ public class HandleManager : MonoBehaviour
         {
             canDrag = false;
             isDragging = false;
-#if UNITY_EDITOR
+#if UNITY_EDITOR || UNITY_STANDALONE_WIN
             dragPath.Clear();
 #endif
         }
@@ -159,7 +159,7 @@ public class HandleManager : MonoBehaviour
         {
             dragCurrent = ClampDrag(dragStart, worldPos);
             OnDragMove(dragStart, dragCurrent);
-#if UNITY_EDITOR
+#if UNITY_EDITOR || UNITY_STANDALONE_WIN
             dragPath.Add(dragCurrent);
 #endif
         }
@@ -205,7 +205,7 @@ public class HandleManager : MonoBehaviour
         isOverUI = false;
         canDrag = false;
         isDragging = false;
-#if UNITY_EDITOR
+#if UNITY_EDITOR || UNITY_STANDALONE_WIN
         dragPath.Clear();
 #endif
     }
@@ -232,7 +232,7 @@ public class HandleManager : MonoBehaviour
     private void OnSingle(Vector3 _pos)
     {
         Debug.Log($"단순 터치 : {_pos}"); // TODO : 단순 터치 동작
-#if UNITY_EDITOR
+#if UNITY_EDITOR || UNITY_STANDALONE_WIN
         AddClick(_pos, Color.cyan);
 #endif
     }
@@ -240,7 +240,7 @@ public class HandleManager : MonoBehaviour
     private void OnDouble(Vector3 _pos)
     {
         Debug.Log($"더블 터치 : {_pos}"); // TODO : 더블 터치 동작
-#if UNITY_EDITOR
+#if UNITY_EDITOR || UNITY_STANDALONE_WIN
         AddClick(_pos, Color.blue);
 #endif
     }
