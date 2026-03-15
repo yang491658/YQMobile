@@ -180,7 +180,7 @@ public class HandleManager : MonoBehaviour
             }
         }
 
-        if (Time.time - clickTimer < doubleClick)
+        if (Time.unscaledTime - clickTimer < doubleClick)
         {
             isDoubleClick = false;
             clickTimer = 0;
@@ -189,7 +189,7 @@ public class HandleManager : MonoBehaviour
         else
         {
             isDoubleClick = true;
-            clickTimer = Time.time;
+            clickTimer = Time.unscaledTime;
             StartCoroutine(ClickCoroutine(worldPos));
         }
 
@@ -215,7 +215,7 @@ public class HandleManager : MonoBehaviour
 
     private IEnumerator ClickCoroutine(Vector3 _pos)
     {
-        yield return new WaitForSeconds(doubleClick);
+        yield return new WaitForSecondsRealtime(doubleClick);
         if (isDoubleClick)
         {
             isDoubleClick = false;
@@ -227,7 +227,7 @@ public class HandleManager : MonoBehaviour
     #region 동작
     private void OnSingle(Vector3 _pos)
     {
-        Debug.Log($"단순 터치 : {_pos}"); // TODO : 단순 터치 동작
+        Debug.Log($"단순 터치 : {_pos} / {Time.time:F3}"); // TODO : 단순 터치 동작
 #if UNITY_EDITOR || UNITY_STANDALONE_WIN
         AddClick(_pos, Color.cyan);
 #endif
@@ -235,7 +235,7 @@ public class HandleManager : MonoBehaviour
 
     private void OnDouble(Vector3 _pos)
     {
-        Debug.Log($"더블 터치 : {_pos}"); // TODO : 더블 터치 동작
+        Debug.Log($"더블 터치 : {_pos} / {Time.time:F3}"); // TODO : 더블 터치 동작
 #if UNITY_EDITOR || UNITY_STANDALONE_WIN
         AddClick(_pos, Color.blue);
 #endif
@@ -243,7 +243,7 @@ public class HandleManager : MonoBehaviour
 
     private void OnDragBegin(Vector3 _pos)
     {
-        Debug.Log($"드래그 시작 : {_pos}"); // TODO : 드래그 시작 동작
+        Debug.Log($"드래그 시작 : {_pos} / {Time.time:F3}"); // TODO : 드래그 시작 동작
     }
 
     private void OnDragMove(Vector3 _start, Vector3 _current)
@@ -253,19 +253,19 @@ public class HandleManager : MonoBehaviour
 
     private void OnDragEnd(Vector3 _start, Vector3 _end)
     {
-        Debug.Log($"드래그 종료 : {_start} → {_end}"); // TODO : 드래그 종료 동작
+        Debug.Log($"드래그 종료 : {_start} → {_end} / {Time.time:F3}"); // TODO : 드래그 종료 동작
     }
 
 #if UNITY_EDITOR || UNITY_STANDALONE_WIN
     private void OnRightClick(Vector3 _pos)
     {
-        Debug.Log($"우클릭 : {_pos}"); // TODO : 우클릭 동작
+        Debug.Log($"우클릭 : {_pos} / {Time.time:F3}"); // TODO : 우클릭 동작
         AddClick(_pos, Color.yellow);
     }
 
     private void OnMiddleClick(Vector3 _pos)
     {
-        Debug.Log($"휠클릭 : {_pos}"); // TODO : 휠클릭 동작
+        Debug.Log($"휠클릭 : {_pos} / {Time.time:F3}"); // TODO : 휠클릭 동작
         AddClick(_pos, Color.red);
     }
 

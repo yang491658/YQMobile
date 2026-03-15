@@ -84,10 +84,7 @@ public class PoolManager : MonoBehaviour
         {
             GameObject obj = pending[i];
 
-            if (obj == null)
-            { pending.RemoveAt(i); continue; }
-
-            if (obj.activeSelf)
+            if (obj == null || obj.activeSelf)
             { pending.RemoveAt(i); continue; }
 
             int id = obj.GetInstanceID();

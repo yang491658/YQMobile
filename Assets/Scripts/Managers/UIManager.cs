@@ -14,7 +14,7 @@ public class UIManager : MonoBehaviour
 
     public event System.Action<bool> OnOpenUI;
     private static readonly string[] units = { "K", "M", "B", "T" };
-    
+
     public static float BannerHeightPx { private set; get; } = 0f;
 
     [Header("Count UI")]
@@ -170,6 +170,8 @@ public class UIManager : MonoBehaviour
 
         OnOpenUI += GameManager.Instance.Pause;
         OnOpenUI += SoundManager.Instance.PauseSFXLoop;
+
+        UpdateSoundIcon();
     }
 
     private void OnDisable()
@@ -291,23 +293,26 @@ public class UIManager : MonoBehaviour
     {
         if (confirmUI == null) return;
 
-        if (!_pass)
+        if (_pass)
         {
-            confirmUI.SetActive(_on);
-            if (_on)
-            {
-                confirmTitle.text = $"{_text}하시겠습니까?";
-                confirmAction = _action;
-            }
-        }
-
-        if (!_on)
-        {
+            confirmUI.SetActive(false);
             confirmTitle.text = string.Empty;
             confirmAction = null;
+            _action?.Invoke();
+            return;
         }
 
-        if (_pass) _action?.Invoke();
+        confirmUI.SetActive(_on);
+
+        if (_on)
+        {
+            confirmTitle.text = $"{_text}하시겠습니까?";
+            confirmAction = _action;
+            return;
+        }
+
+        confirmTitle.text = string.Empty;
+        confirmAction = null;
     }
 
     public void OpenResult(bool _on)
@@ -423,10 +428,11 @@ public class UIManager : MonoBehaviour
     public void SetSkipCountdown(bool _skip) => countSkip = _skip;
     public void SetMargin(float _margin)
     {
-        var rt = inGameUI.GetComponent<RectTransform>();
-        rt.offsetMax = new Vector3(rt.offsetMax.x, -_margin);
+        RectTransform rt = inGameUI.GetComponent<RectTransform>();
+        rt.offsetMax = new Vector2(rt.offsetMax.x, -_margin);
 
-        BannerHeightPx = _margin * inGameUI.GetComponentInParent<Canvas>().scaleFactor;
+        Canvas canvas = inGameUI.GetComponentInParent<Canvas>();
+        BannerHeightPx = _margin * canvas.scaleFactor;
     }
     #endregion
 
