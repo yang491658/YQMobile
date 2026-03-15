@@ -13,7 +13,6 @@ public class AutoCamera : MonoBehaviour
     public static float SizeDelta { private set; get; } = 0f;
     public static Vector2 RefResolution { private set; get; }
     public static float RefAspect { private set; get; }
-    public static float OrthoSize { private set; get; }
     public static Rect WorldRect { private set; get; }
 
 #if UNITY_EDITOR
@@ -49,7 +48,8 @@ public class AutoCamera : MonoBehaviour
         int ch = Screen.height;
         if (!_force && cw == lastW && ch == lastH) return;
 
-        lastW = cw; lastH = ch;
+        lastW = cw;
+        lastH = ch;
         if (ch == 0) return;
 
         float currentAspect = (float)cw / ch;
@@ -57,16 +57,11 @@ public class AutoCamera : MonoBehaviour
         size = Mathf.Max(size, minSize);
         cam.orthographicSize = size;
 
-        OrthoSize = size;
         float worldH = size * 2f;
         float worldW = worldH * currentAspect;
         Vector3 pos = cam.transform.position;
         WorldRect = new Rect(pos.x - worldW * 0.5f, pos.y - worldH * 0.5f, worldW, worldH);
 
-        float delta = size - baseSize;
-        if (!Mathf.Approximately(delta, SizeDelta))
-        {
-            SizeDelta = delta;
-        }
+        SizeDelta = size - baseSize;
     }
 }

@@ -123,7 +123,11 @@ public class PoolManager : MonoBehaviour
             pool.Add(key, stack);
         }
 
-        int need = _count - stack.Count;
+        int alive = 0;
+        foreach (var o in stack)
+            if (o != null) alive++;
+
+        int need = _count - alive;
         if (need <= 0) return;
 
         for (int i = 0; i < need; i++)

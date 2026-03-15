@@ -14,6 +14,8 @@ public class UIManager : MonoBehaviour
 
     public event System.Action<bool> OnOpenUI;
     private static readonly string[] units = { "K", "M", "B", "T" };
+    
+    public static float BannerHeightPx { private set; get; } = 0f;
 
     [Header("Count UI")]
     [SerializeField] private TextMeshProUGUI countText;
@@ -423,6 +425,8 @@ public class UIManager : MonoBehaviour
     {
         var rt = inGameUI.GetComponent<RectTransform>();
         rt.offsetMax = new Vector3(rt.offsetMax.x, -_margin);
+
+        BannerHeightPx = _margin * inGameUI.GetComponentInParent<Canvas>().scaleFactor;
     }
     #endregion
 

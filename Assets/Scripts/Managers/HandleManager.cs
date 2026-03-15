@@ -110,12 +110,8 @@ public class HandleManager : MonoBehaviour
     #region 구분
     private void HandleBegin(Vector3 _pos, int _fingerID = -1)
     {
-        if (IsOverUI(_fingerID))
-        {
-            isOverUI = true;
-            return;
-        }
-        else isOverUI = false;
+        isOverUI = IsOverUI(_fingerID);
+        if (isOverUI) return;
 
         Vector3 worldPos = ScreenToWorld(_pos);
         Collider2D hit = Physics2D.OverlapPoint(worldPos, layer);
