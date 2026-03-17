@@ -2402,7 +2402,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   res: {x: 1080, y: 1920}
-  baseSize: 10
   minSize: 10
 --- !u!1 &548470385
 GameObject:
