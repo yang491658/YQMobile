@@ -227,7 +227,7 @@ public class HandleManager : MonoBehaviour
     #region 동작
     private void OnSingle(Vector3 _pos)
     {
-        Debug.Log($"단순 터치 : {_pos} / {Time.time:F3}"); // TODO : 단순 터치 동작
+        Debug.Log($"단순 클릭 : {_pos} / {Time.time:F3}"); // TODO : 단순 클릭 동작
 #if UNITY_EDITOR || UNITY_STANDALONE_WIN
         AddClick(_pos, Color.cyan);
 #endif
@@ -235,7 +235,7 @@ public class HandleManager : MonoBehaviour
 
     private void OnDouble(Vector3 _pos)
     {
-        Debug.Log($"더블 터치 : {_pos} / {Time.time:F3}"); // TODO : 더블 터치 동작
+        Debug.Log($"더블 클릭 : {_pos} / {Time.time:F3}"); // TODO : 더블 클릭 동작
 #if UNITY_EDITOR || UNITY_STANDALONE_WIN
         AddClick(_pos, Color.blue);
 #endif
