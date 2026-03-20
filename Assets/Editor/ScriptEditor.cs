@@ -137,6 +137,10 @@ public static class ScriptEditor
     {
         var _managers = new Type[]
         {
+            typeof(AutoCamera),
+            typeof(AutoUICanvas),
+            typeof(AutoBackground),
+
             typeof(GameManager),
             typeof(SoundManager),
             typeof(DataManager),
@@ -148,9 +152,6 @@ public static class ScriptEditor
 #if TEST_Manager
             typeof(TestManager),
 #endif
-            typeof(AutoCamera),
-            typeof(AutoUICanvas),
-            typeof(AutoBackground),
         };
         for (int i = 0; i < _managers.Length; i++) ResetManager(_managers[i]);
 
