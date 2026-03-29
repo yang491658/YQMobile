@@ -43,8 +43,8 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Slider sfxSlider;
     [SerializeField] private Image bgmIcon;
     [SerializeField] private Image sfxIcon;
-    [SerializeField] private List<Sprite> bgmIcons = new List<Sprite>();
-    [SerializeField] private List<Sprite> sfxIcons = new List<Sprite>();
+    [SerializeField] private List<Sprite> bgmIcons = new();
+    [SerializeField] private List<Sprite> sfxIcons = new();
 
     [Header("Confirm UI")]
     [SerializeField] private GameObject confirmUI;
@@ -137,7 +137,7 @@ public class UIManager : MonoBehaviour
 
     private void Start()
     {
-        UpdateScore(GameManager.Instance.GetScore());
+        ResetUI();
     }
 
     private void Update()
@@ -242,7 +242,7 @@ public class UIManager : MonoBehaviour
         countRoutine = null;
     }
 
-    private string FormatNumber(int _number, bool _full)
+    private string FormatNumber(int _number, bool _full = false)
     {
         if (_full && _number < 10000)
             return _number.ToString("0000");
@@ -333,15 +333,16 @@ public class UIManager : MonoBehaviour
         playTimeSec = -1;
 
         UpdatePlayTime();
+        UpdateScore(GameManager.Instance.GetScore());
     }
 
-    public void UpdateSpeed(float _speed)
+    private void UpdateSpeed(float _speed)
     {
         if (!Mathf.Approximately(speedSlider.value, _speed))
             speedSlider.value = _speed;
     }
 
-    public void UpdatePlayTime()
+    private void UpdatePlayTime()
     {
         int total = Mathf.FloorToInt(playTime);
         if (total == playTimeSec) return;
@@ -351,7 +352,7 @@ public class UIManager : MonoBehaviour
         playTimeText.text = s;
     }
 
-    public void UpdateScore(int _score)
+    private void UpdateScore(int _score)
     {
         string s = FormatNumber(_score, true);
         scoreNum.text = s;
@@ -359,7 +360,7 @@ public class UIManager : MonoBehaviour
         resultScoreNum.text = s;
     }
 
-    public void UpdateVolume(SoundType _type, float _volume)
+    private void UpdateVolume(SoundType _type, float _volume)
     {
         switch (_type)
         {
@@ -378,7 +379,7 @@ public class UIManager : MonoBehaviour
         UpdateSoundIcon();
     }
 
-    public void UpdateSoundIcon()
+    private void UpdateSoundIcon()
     {
         if (bgmIcons.Count >= 2)
             bgmIcon.sprite = SoundManager.Instance.IsBGMMuted() ? bgmIcons[1] : bgmIcons[0];
