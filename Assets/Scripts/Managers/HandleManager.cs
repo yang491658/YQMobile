@@ -226,6 +226,11 @@ public class HandleManager : MonoBehaviour
     #endregion
 
     #region 동작
+    public void CancelDrag()
+    {
+        ResetDrag();
+    }
+
     private void OnSingle(Vector3 _pos)
     {
         Debug.Log($"단순 클릭 : {_pos} / {Time.time:F3}"); // TODO : 단순 클릭 동작

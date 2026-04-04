@@ -66,8 +66,6 @@ public class GameManager : MonoBehaviour
         ResetScore();
 
         UIManager.Instance?.ResetUI();
-        UIManager.Instance?.OpenUI(false);
-        UIManager.Instance?.StartCountdown();
 
 #if TEST_Manager
         if (TestManager.Instance.IsAuto) TestManager.Instance?.SetAuto();
@@ -81,6 +79,9 @@ public class GameManager : MonoBehaviour
 
         IsPaused = _pause;
         Time.timeScale = _pause ? 0f : speed;
+
+        if (_pause)
+            HandleManager.Instance?.CancelDrag();
     }
 
     private void ActWithReward(System.Action _act)

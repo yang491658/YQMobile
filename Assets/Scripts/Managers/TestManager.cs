@@ -231,11 +231,9 @@ public class TestManager : MonoBehaviour
 
     private void UpdateSliderUI(SliderConfig _config)
     {
-        if (string.IsNullOrEmpty(_config.format))
-            _config.TMP.text = _config.value.ToString();
-        else
-            _config.TMP.text = string.Format(_config.format, _config.value);
-
+        _config.TMP.text = string.IsNullOrEmpty(_config.format)
+            ? _config.value.ToString()
+            : string.Format(_config.format, _config.value);
         _config.slider.value = _config.value;
     }
     private void ChangeGameSpeed(float _value) => ApplySlider(ref gameSpeed, _value, _v => GameManager.Instance?.SetSpeed(_v, true));
@@ -244,7 +242,7 @@ public class TestManager : MonoBehaviour
     {
         int count = testResults.Count;
 
-        List<int> scores = new List<int>(count);
+        List<int> scores = new(count);
         int totalScore = 0;
         float totalPlay = 0f;
         double scoreSqSum = 0d;

@@ -190,7 +190,7 @@ public class UIManager : MonoBehaviour
     }
 
     #region 기타
-    public void StartCountdown()
+    private void StartCountdown()
     {
         if (countRoutine != null) StopCoroutine(countRoutine);
         countRoutine = StartCoroutine(CountCoroutine());
@@ -273,7 +273,7 @@ public class UIManager : MonoBehaviour
     #endregion
 
     #region 오픈
-    public void OpenUI(bool _on)
+    private void OpenUI(bool _on)
     {
         OpenResult(_on);
         OpenConfirm(_on);
@@ -303,16 +303,8 @@ public class UIManager : MonoBehaviour
         }
 
         confirmUI.SetActive(_on);
-
-        if (_on)
-        {
-            confirmTitle.text = $"{_text}하시겠습니까?";
-            confirmAction = _action;
-            return;
-        }
-
-        confirmTitle.text = string.Empty;
-        confirmAction = null;
+        confirmTitle.text = _on ? $"{_text}하시겠습니까?" : string.Empty;
+        confirmAction = _on ? _action : null;
     }
 
     public void OpenResult(bool _on)
@@ -334,6 +326,9 @@ public class UIManager : MonoBehaviour
 
         UpdatePlayTime();
         UpdateScore(GameManager.Instance.GetScore());
+
+        OpenUI(false);
+        StartCountdown();
     }
 
     private void UpdateSpeed(float _speed)
@@ -400,13 +395,7 @@ public class UIManager : MonoBehaviour
     public void OnClickSetting() => OpenSetting(true);
 
     public void OnClickClose() => OpenUI(false);
-    public void OnClickSpeed()
-    {
-        if (speedSlider.value != 1f)
-            speedSlider.value = 1f;
-        else
-            speedSlider.value = speedSlider.maxValue;
-    }
+    public void OnClickSpeed() => speedSlider.value = speedSlider.value != 1f ? 1f : speedSlider.maxValue;
     public void OnClickBGM() => SoundManager.Instance?.ToggleBGM();
     public void OnClickSFX() => SoundManager.Instance?.ToggleSFX();
 
