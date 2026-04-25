@@ -65,6 +65,7 @@ public class GameManager : MonoBehaviour
 
         ResetScore();
 
+        EntityManager.Instance?.ResetEntity();
         UIManager.Instance?.ResetUI();
 
 #if TEST_Manager
@@ -142,7 +143,6 @@ public class GameManager : MonoBehaviour
 
     #region SET
     public void SetSpeed(float _speed) => SetSpeed(_speed, false);
-
     public void SetSpeed(float _speed, bool _force)
     {
         speed = _force ? _speed : Mathf.Clamp(_speed, minSpeed, maxSpeed);

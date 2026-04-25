@@ -242,10 +242,10 @@ public class UIManager : MonoBehaviour
         countRoutine = null;
     }
 
-    private string FormatNumber(int _number, bool _full = false)
+    public string FormatNumber(int _number, bool _full = false)
     {
-        if (_full && _number < 10000)
-            return _number.ToString("0000");
+        if (_number < 10000)
+            return _full ? _number.ToString("0000") : _number.ToString();
 
         for (int i = units.Length; i > 0; i--)
         {
@@ -255,16 +255,12 @@ public class UIManager : MonoBehaviour
                 float value = _number / n;
 
                 if (value >= 100f)
-                    return ((int)value).ToString() + units[i - 1];
+                    return Mathf.RoundToInt(value).ToString() + units[i - 1];
 
                 if (value >= 10f)
-                {
-                    float v10 = Mathf.Floor(value * 10f) / 10f;
-                    return v10.ToString("0.0") + units[i - 1];
-                }
+                    return value.ToString("0.0") + units[i - 1];
 
-                float v100 = Mathf.Floor(value * 100f) / 100f;
-                return v100.ToString("0.00") + units[i - 1];
+                return value.ToString("0.00") + units[i - 1];
             }
         }
 
@@ -321,7 +317,7 @@ public class UIManager : MonoBehaviour
     public void ResetUI()
     {
         onPlayTime = true;
-        playTime = 0;
+        playTime = 0f;
         playTimeSec = -1;
 
         UpdatePlayTime();

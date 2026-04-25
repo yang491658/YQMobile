@@ -26,6 +26,9 @@ public class EntityManager : MonoBehaviour
     }
 
     #region SET
+    public void ResetEntity()
+    {
+    }
     #endregion
 
     #region GET

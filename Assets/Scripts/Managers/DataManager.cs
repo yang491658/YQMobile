@@ -12,6 +12,7 @@ public class DataManager : MonoBehaviour
 #if UNITY_EDITOR
     private void OnValidate()
     {
+        EditorUtility.SetDirty(this);
     }
 
     private static TAsset[] CollectDatas<TAsset>(string _filter, string[] _folders, System.Func<TAsset, int> _order) where TAsset : ScriptableObject
@@ -55,9 +56,17 @@ public class DataManager : MonoBehaviour
         }
         Instance = this;
         DontDestroyOnLoad(gameObject);
+
+        SetDictionary();
     }
 
+    #region 검색
+    #endregion
+
     #region SET
+    private void SetDictionary()
+    {
+    }
     #endregion
 
     #region GET

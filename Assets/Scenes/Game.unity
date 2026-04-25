@@ -6041,9 +6041,10 @@ MonoBehaviour:
     maxValue: 10
     format: "\uBC30\uC18D \xD7 {0}"
   testCountNum: {fileID: 82935451405714779}
-  score10Num: {fileID: 3937834829484441480}
-  averageScoreNum: {fileID: 7358479592946714387}
   averagePlayNum: {fileID: 274309895}
+  averageValueName: {fileID: 6255281966413039795}
+  averageValueNum: {fileID: 7358479592946714387}
+  value10Num: {fileID: 3937834829484441480}
 --- !u!4 &1407473050
 Transform:
   m_ObjectHideFlags: 0
@@ -9298,7 +9299,7 @@ GameObject:
   - component: {fileID: 5427899485865753096}
   - component: {fileID: 3009325120186905908}
   m_Layer: 5
-  m_Name: AverageScore
+  m_Name: AverageValue
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -9833,9 +9834,9 @@ RectTransform:
   m_Children:
   - {fileID: 2395565099972286157}
   - {fileID: 7564335387392574784}
-  - {fileID: 8104437334427166111}
-  - {fileID: 5427899485865753096}
   - {fileID: 869018456}
+  - {fileID: 5427899485865753096}
+  - {fileID: 8104437334427166111}
   - {fileID: 1942526703}
   m_Father: {fileID: 5231894685617460395}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -10030,7 +10031,7 @@ GameObject:
   - component: {fileID: 8104437334427166111}
   - component: {fileID: 6937188479865217515}
   m_Layer: 5
-  m_Name: Score10
+  m_Name: Value10
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

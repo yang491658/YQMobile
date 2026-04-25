@@ -8,12 +8,12 @@ using UnityEngine.UI;
 [System.Serializable]
 public struct TestResult
 {
-    [Min(0)] public int score;
+    [Min(0)] public long value;
     [Min(0f)] public float playTime;
 
-    public TestResult(int _score, float _playTime)
+    public TestResult(long _value, float _playTime)
     {
-        score = _score;
+        value = _value;
         playTime = _playTime;
     }
 }
@@ -61,9 +61,10 @@ public class TestManager : MonoBehaviour
     [SerializeField] private SliderConfig gameSpeed = new(1, 1, 10, "배속 × {0}");
     [Space]
     [SerializeField] private TextMeshProUGUI testCountNum;
-    [SerializeField] private TextMeshProUGUI score10Num;
-    [SerializeField] private TextMeshProUGUI averageScoreNum;
     [SerializeField] private TextMeshProUGUI averagePlayNum;
+    [SerializeField] private TextMeshProUGUI averageValueName;
+    [SerializeField] private TextMeshProUGUI averageValueNum;
+    [SerializeField] private TextMeshProUGUI value10Num;
 
 #if UNITY_EDITOR
     private void OnValidate()
@@ -78,12 +79,14 @@ public class TestManager : MonoBehaviour
 
         if (testCountNum == null)
             testCountNum = GameObject.Find("TestUI/TestCount/TestNum")?.GetComponent<TextMeshProUGUI>();
-        if (score10Num == null)
-            score10Num = GameObject.Find("TestUI/Score10/TestNum")?.GetComponent<TextMeshProUGUI>();
-        if (averageScoreNum == null)
-            averageScoreNum = GameObject.Find("TestUI/AverageScore/TestNum")?.GetComponent<TextMeshProUGUI>();
         if (averagePlayNum == null)
             averagePlayNum = GameObject.Find("TestUI/AveragePlay/TestNum")?.GetComponent<TextMeshProUGUI>();
+        if (averageValueName == null)
+            averageValueName = GameObject.Find("TestUI/AverageValue/TestName")?.GetComponent<TextMeshProUGUI>();
+        if (averageValueNum == null)
+            averageValueNum = GameObject.Find("TestUI/AverageValue/TestNum")?.GetComponent<TextMeshProUGUI>();
+        if (value10Num == null)
+            value10Num = GameObject.Find("TestUI/Value10/TestNum")?.GetComponent<TextMeshProUGUI>();
     }
 #endif
 
@@ -130,7 +133,9 @@ public class TestManager : MonoBehaviour
         #region 엔티티 매니저
         for (int i = 1; i <= 10; i++)
         {
-            KeyCode key = (i == 10) ? KeyCode.Alpha0 : (KeyCode)((int)KeyCode.Alpha0 + i);
+            KeyCode key = i == 10 ? KeyCode.Alpha0 : (KeyCode)((int)KeyCode.Alpha0 + i);
+            int digit = i == 10 ? 0 : i;
+
             if (Input.GetKeyDown(key))
             {
                 break;
@@ -157,9 +162,13 @@ public class TestManager : MonoBehaviour
             else AutoPlay();
         }
         if (Input.GetKeyDown(KeyCode.UpArrow))
-            ChangeGameSpeed(gameSpeed.value == gameSpeed.maxValue ? GameManager.Instance.GetMaxSpeed() : gameSpeed.maxValue);
+            ChangeGameSpeed(gameSpeed.value == gameSpeed.maxValue
+                ? GameManager.Instance.GetMaxSpeed()
+                : gameSpeed.maxValue);
         if (Input.GetKeyDown(KeyCode.DownArrow))
-            ChangeGameSpeed(gameSpeed.value == gameSpeed.minValue ? GameManager.Instance.GetMaxSpeed() : gameSpeed.minValue);
+            ChangeGameSpeed(gameSpeed.value == gameSpeed.minValue
+                ? GameManager.Instance.GetMaxSpeed()
+                : gameSpeed.minValue);
         #endregion
     }
 
@@ -198,6 +207,7 @@ public class TestManager : MonoBehaviour
     #region 테스트 UI
     private void OnEnable()
     {
+        gameSpeed.value = (int)GameManager.Instance?.GetSpeed();
         InitSlider(gameSpeed, ChangeGameSpeed);
     }
 
@@ -236,54 +246,56 @@ public class TestManager : MonoBehaviour
             : string.Format(_config.format, _config.value);
         _config.slider.value = _config.value;
     }
+
     private void ChangeGameSpeed(float _value) => ApplySlider(ref gameSpeed, _value, _v => GameManager.Instance?.SetSpeed(_v, true));
 
     private void UpdateTestUI()
     {
         int count = testResults.Count;
 
-        List<int> scores = new(count);
-        int totalScore = 0;
+        List<long> values = new(count);
+        long totalValue = 0;
         float totalPlay = 0f;
-        double scoreSqSum = 0d;
+        double valueSqSum = 0d;
 
         for (int i = 0; i < count; i++)
         {
             TestResult r = testResults[i];
 
-            scores.Add(r.score);
-            totalScore += r.score;
+            values.Add(r.value);
+            totalValue += r.value;
             totalPlay += r.playTime;
-            scoreSqSum += (double)r.score * r.score;
+            valueSqSum += (double)r.value * r.value;
         }
 
-        int topAvg = 0; int bottomAvg = 0;
+        long topAvg = 0;
+        long bottomAvg = 0;
         if (count > 0)
         {
-            scores.Sort();
+            values.Sort();
             int group = Mathf.Max(Mathf.CeilToInt(count * 0.1f), 1);
 
             long sumBottom = 0;
-            for (int i = 0; i < group; i++) sumBottom += scores[i];
+            for (int i = 0; i < group; i++) sumBottom += values[i];
 
             long sumTop = 0;
-            for (int i = count - group; i < count; i++) sumTop += scores[i];
+            for (int i = count - group; i < count; i++) sumTop += values[i];
 
-            bottomAvg = Mathf.RoundToInt((float)sumBottom / group);
-            topAvg = Mathf.RoundToInt((float)sumTop / group);
+            bottomAvg = (long)System.Math.Round((double)sumBottom / group);
+            topAvg = (long)System.Math.Round((double)sumTop / group);
         }
 
-        int averageScore = count > 0 ? totalScore / count : 0;
+        long averageValue = count > 0 ? (long)System.Math.Round((double)totalValue / count) : 0;
         float averagePlay = count > 0 ? totalPlay / count : 0f;
 
-        double cvScore = 0d;
+        double cvValue = 0d;
         if (count > 1)
         {
-            double meanScore = (double)totalScore / count;
-            double varScore = scoreSqSum / count - meanScore * meanScore;
-            if (varScore < 0d) varScore = 0d;
-            double stdScore = System.Math.Sqrt(varScore);
-            cvScore = meanScore != 0d ? (stdScore / meanScore) * 100d : 0d;
+            double meanValue = (double)totalValue / count;
+            double varValue = valueSqSum / count - meanValue * meanValue;
+            if (varValue < 0d) varValue = 0d;
+            double stdValue = System.Math.Sqrt(varValue);
+            cvValue = meanValue != 0d ? (stdValue / meanValue) * 100d : 0d;
         }
 
         int totalSeconds = Mathf.RoundToInt(averagePlay);
@@ -291,9 +303,9 @@ public class TestManager : MonoBehaviour
         int seconds = totalSeconds % 60;
 
         testCountNum.text = count.ToString();
-        score10Num.text = $"{topAvg:#,0} / {bottomAvg:#,0}";
-        averageScoreNum.text = $"{averageScore:#,0} ({cvScore:0.#}%)";
         averagePlayNum.text = minutes.ToString("00") + ":" + seconds.ToString("00");
+        averageValueNum.text = $"{averageValue:#,0} ({cvValue:0.#}%)";
+        value10Num.text = $"{topAvg:#,0} / {bottomAvg:#,0}";
 
         UpdateSliderUI(gameSpeed);
     }
@@ -307,6 +319,12 @@ public class TestManager : MonoBehaviour
     {
         testResults.Clear();
         playTime = 0f;
+
+        if (autoRoutine != null)
+        {
+            StopCoroutine(autoRoutine);
+            autoRoutine = null;
+        }
 
         UpdateTestUI();
     }
