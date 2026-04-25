@@ -304,6 +304,7 @@ public class TestManager : MonoBehaviour
 
         testCountNum.text = count.ToString();
         averagePlayNum.text = minutes.ToString("00") + ":" + seconds.ToString("00");
+        averageValueName.text = "평균 점수";
         averageValueNum.text = $"{averageValue:#,0} ({cvValue:0.#}%)";
         value10Num.text = $"{topAvg:#,0} / {bottomAvg:#,0}";
 
