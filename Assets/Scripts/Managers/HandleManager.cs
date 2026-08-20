@@ -7,9 +7,6 @@ public class HandleManager : MonoBehaviour
 {
     public static HandleManager Instance { private set; get; }
 
-    private Camera cam => Camera.main;
-    private LayerMask layer = 0;
-
     [Header("Click")]
     [SerializeField] private float doubleClick = 0.25f;
     private bool isDoubleClick;
@@ -93,7 +90,7 @@ public class HandleManager : MonoBehaviour
     private bool IsOverUI(int _fingerID = -1)
         => EventSystem.current != null && EventSystem.current.IsPointerOverGameObject(_fingerID);
 
-    private Vector3 ScreenToWorld(Vector3 _screenPos)
+    public Vector3 ScreenToWorld(Vector3 _screenPos)
     {
         var p = _screenPos;
         p.z = Mathf.Max(-cam.transform.position.z, cam.nearClipPlane);
@@ -181,7 +178,7 @@ public class HandleManager : MonoBehaviour
             }
         }
 
-        if (Time.unscaledTime - clickTimer < doubleClick)
+        if (Time.unscaledTime - clickTimer <= doubleClick)
         {
             isDoubleClick = false;
             clickTimer = 0;
@@ -286,12 +283,13 @@ public class HandleManager : MonoBehaviour
     {
         for (int i = markTimes.Count - 1; i >= 0; i--)
         {
-            if (Time.time > markTimes[i])
+            if (Time.time >= markTimes[i])
             {
                 int last = markTimes.Count - 1;
                 (markTimes[i], markTimes[last]) = (markTimes[last], markTimes[i]);
                 (marks[i], marks[last]) = (marks[last], marks[i]);
                 (markColors[i], markColors[last]) = (markColors[last], markColors[i]);
+
                 markTimes.RemoveAt(last);
                 marks.RemoveAt(last);
                 markColors.RemoveAt(last);
@@ -300,13 +298,16 @@ public class HandleManager : MonoBehaviour
 
             Vector3 center = marks[i];
             Color c = markColors[i];
+
             for (int s = 0; s < markSegment; s++)
             {
-                float a0 = (Mathf.PI * 2f) * s / markSegment;
-                float a1 = (Mathf.PI * 2f) * (s + 1) / markSegment;
-                Vector3 p0 = center + new Vector3(Mathf.Cos(a0), Mathf.Sin(a0)) * markRadius;
+                float a1 = s * Mathf.PI * 2f / markSegment;
+                float a2 = (s + 1) * Mathf.PI * 2f / markSegment;
+
                 Vector3 p1 = center + new Vector3(Mathf.Cos(a1), Mathf.Sin(a1)) * markRadius;
-                Debug.DrawLine(p0, p1, c);
+                Vector3 p2 = center + new Vector3(Mathf.Cos(a2), Mathf.Sin(a2)) * markRadius;
+
+                Debug.DrawLine(p1, p2, c);
             }
         }
 
@@ -319,5 +320,10 @@ public class HandleManager : MonoBehaviour
         }
     }
 #endif
+    #endregion
+
+    #region 프로퍼티
+    private Camera cam => Camera.main;
+    private LayerMask layer => 0;
     #endregion
 }

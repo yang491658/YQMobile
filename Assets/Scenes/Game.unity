@@ -6038,7 +6038,7 @@ MonoBehaviour:
     slider: {fileID: 6970153951016945753}
     value: 1
     minValue: 1
-    maxValue: 10
+    maxValue: 20
     format: "\uBC30\uC18D \xD7 {0}"
   testCountNum: {fileID: 82935451405714779}
   averagePlayNum: {fileID: 274309895}
@@ -6637,7 +6637,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1638876044
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9657,7 +9657,7 @@ GameObject:
   - component: {fileID: 4779212417498875834}
   - component: {fileID: 919753394820246107}
   m_Layer: 5
-  m_Name: TestText
+  m_Name: TestName
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

@@ -25,12 +25,28 @@ public class EntityManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
+    #region 풀링
+    private T SpawnPool<T>(GameObject _prefab, Vector3 _pos, Transform _parent) where T : Component
+        => PoolManager.Instance?.Rent(_prefab, _pos, _parent)?.GetComponent<T>();
+
+    public void DespawnPool(Pooling _pooling)
+        => PoolManager.Instance?.Release(_pooling.gameObject);
+    #endregion
+
     #region SET
     public void ResetEntity()
+    {
+        SetEntity();
+    }
+
+    public void SetEntity()
     {
     }
     #endregion
 
     #region GET
+    #endregion
+
+    #region 프로퍼티
     #endregion
 }

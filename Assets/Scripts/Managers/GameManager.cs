@@ -117,6 +117,8 @@ public class GameManager : MonoBehaviour
         if (IsGameOver) return;
         IsGameOver = true;
 
+        StopAllCoroutines();
+
         Pause(true);
         SoundManager.Instance?.GameOver();
         UIManager.Instance?.OpenResult(true);
@@ -152,10 +154,13 @@ public class GameManager : MonoBehaviour
     #endregion
 
     #region GET
-    public float GetSpeed() => speed;
-    public float GetMinSpeed() => minSpeed;
-    public float GetMaxSpeed() => maxSpeed;
+    #endregion
 
-    public int GetScore() => score;
+    #region 프로퍼티
+    public float Speed => speed;
+    public float MinSpeed => minSpeed;
+    public float MaxSpeed => maxSpeed;
+
+    public int Score => score;
     #endregion
 }

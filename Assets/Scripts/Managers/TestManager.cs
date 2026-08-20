@@ -58,7 +58,7 @@ public class TestManager : MonoBehaviour
     [Header("Test UI")]
     [SerializeField] private GameObject testUI;
     [Space]
-    [SerializeField] private SliderConfig gameSpeed = new(1, 1, 10, "배속 × {0}");
+    [SerializeField] private SliderConfig gameSpeed = new(1, 1, 20, "배속 × {0}");
     [Space]
     [SerializeField] private TextMeshProUGUI testCountNum;
     [SerializeField] private TextMeshProUGUI averagePlayNum;
@@ -73,7 +73,7 @@ public class TestManager : MonoBehaviour
             testUI = GameObject.Find("TestUI");
 
         if (gameSpeed.TMP == null)
-            gameSpeed.TMP = GameObject.Find("TestUI/GameSpeed/TestText")?.GetComponent<TextMeshProUGUI>();
+            gameSpeed.TMP = GameObject.Find("TestUI/GameSpeed/TestName")?.GetComponent<TextMeshProUGUI>();
         if (gameSpeed.slider == null)
             gameSpeed.slider = GameObject.Find("TestUI/GameSpeed/TestSlider")?.GetComponent<Slider>();
 
@@ -99,13 +99,12 @@ public class TestManager : MonoBehaviour
         }
         Instance = this;
         DontDestroyOnLoad(gameObject);
-
-        testUI.SetActive(false);
     }
 
     private void Start()
     {
         SoundManager.Instance?.ToggleBGM();
+        SoundManager.Instance?.ToggleSFX();
 
         SetAuto();
         UpdateTestUI();
@@ -144,9 +143,9 @@ public class TestManager : MonoBehaviour
         #endregion
 
         #region UI 매니저
-        if (Input.GetKeyDown(KeyCode.Z)) UIManager.Instance?.OpenSetting(!UIManager.Instance.GetOnSetting());
-        if (Input.GetKeyDown(KeyCode.X)) UIManager.Instance?.OpenConfirm(!UIManager.Instance.GetOnConfirm());
-        if (Input.GetKeyDown(KeyCode.C)) UIManager.Instance?.OpenResult(!UIManager.Instance.GetOnResult());
+        if (Input.GetKeyDown(KeyCode.Z)) UIManager.Instance?.OpenSetting(!UIManager.Instance.OnSetting);
+        if (Input.GetKeyDown(KeyCode.X)) UIManager.Instance?.OpenConfirm(!UIManager.Instance.OnConfirm);
+        if (Input.GetKeyDown(KeyCode.C)) UIManager.Instance?.OpenResult(!UIManager.Instance.OnResult);
         #endregion
 
         #region 테스트 매니저
@@ -162,27 +161,20 @@ public class TestManager : MonoBehaviour
             else AutoPlay();
         }
         if (Input.GetKeyDown(KeyCode.UpArrow))
-            ChangeGameSpeed(gameSpeed.value == gameSpeed.maxValue
-                ? GameManager.Instance.GetMaxSpeed()
+            ChangeGameSpeed(Mathf.Approximately(GameManager.Instance.Speed, gameSpeed.maxValue)
+                ? GameManager.Instance.MaxSpeed
                 : gameSpeed.maxValue);
         if (Input.GetKeyDown(KeyCode.DownArrow))
-            ChangeGameSpeed(gameSpeed.value == gameSpeed.minValue
-                ? GameManager.Instance.GetMaxSpeed()
+            ChangeGameSpeed(Mathf.Approximately(GameManager.Instance.Speed, gameSpeed.minValue)
+                ? GameManager.Instance.MaxSpeed
                 : gameSpeed.minValue);
         #endregion
     }
 
-    #region 자동 테스트
+    #region 자동 플레이 + 테스트 모드
     public void SetAuto(bool _on = true)
     {
         IsAuto = _on;
-
-        GameManager.Instance?.SetSpeed(_on ? GameManager.Instance.GetMaxSpeed() : 1f);
-    }
-
-    private void AutoPlay()
-    {
-        playTime += Time.deltaTime;
     }
 
     private IEnumerator AutoReplay()
@@ -191,23 +183,27 @@ public class TestManager : MonoBehaviour
 
         if (GameManager.Instance.IsGameOver)
         {
-            int score = GameManager.Instance.GetScore();
+            long value = GameManager.Instance.Score;
 
-            testResults.Add(new TestResult(score, playTime));
+            testResults.Add(new TestResult(value, playTime));
+
             playTime = 0f;
 
             GameManager.Instance?.Replay();
-
             UpdateTestUI();
         }
         autoRoutine = null;
     }
+
+    private void AutoPlay()
+    {
+        playTime += Time.deltaTime;
+    }
     #endregion
 
-    #region 테스트 UI
     private void OnEnable()
     {
-        gameSpeed.value = (int)GameManager.Instance?.GetSpeed();
+        gameSpeed.value = (int)GameManager.Instance?.Speed;
         InitSlider(gameSpeed, ChangeGameSpeed);
     }
 
@@ -216,6 +212,7 @@ public class TestManager : MonoBehaviour
         gameSpeed.slider.onValueChanged.RemoveListener(ChangeGameSpeed);
     }
 
+    #region 테스트 UI_기본
     private void InitSlider(SliderConfig _config, UnityEngine.Events.UnityAction<float> _action)
     {
         if (_config.slider == null) return;
@@ -229,25 +226,30 @@ public class TestManager : MonoBehaviour
         _config.slider.onValueChanged.AddListener(_action);
     }
 
-    private int ChangeSlider(float _value, SliderConfig _config)
-        => Mathf.Clamp(Mathf.RoundToInt(_value), _config.minValue, _config.maxValue);
-
     private void ApplySlider(ref SliderConfig _config, float _value, System.Action<int> _afterAction = null)
     {
-        _config.value = ChangeSlider(_value, _config);
+        int value = ChangeSlider(_value, _config);
+        if (_config.value == value)
+        {
+            UpdateSliderUI(_config);
+            return;
+        }
+
+        _config.value = value;
         UpdateSliderUI(_config);
         _afterAction?.Invoke(_config.value);
     }
+
+    private int ChangeSlider(float _value, SliderConfig _config)
+        => Mathf.Clamp(Mathf.RoundToInt(_value), _config.minValue, _config.maxValue);
 
     private void UpdateSliderUI(SliderConfig _config)
     {
         _config.TMP.text = string.IsNullOrEmpty(_config.format)
             ? _config.value.ToString()
             : string.Format(_config.format, _config.value);
-        _config.slider.value = _config.value;
+        _config.slider.SetValueWithoutNotify(_config.value);
     }
-
-    private void ChangeGameSpeed(float _value) => ApplySlider(ref gameSpeed, _value, _v => GameManager.Instance?.SetSpeed(_v, true));
 
     private void UpdateTestUI()
     {
@@ -304,13 +306,20 @@ public class TestManager : MonoBehaviour
 
         testCountNum.text = count.ToString();
         averagePlayNum.text = minutes.ToString("00") + ":" + seconds.ToString("00");
-        averageValueName.text = "평균 점수";
+        averageValueName.text = "평균점수";
         averageValueNum.text = $"{averageValue:#,0} ({cvValue:0.#}%)";
         value10Num.text = $"{topAvg:#,0} / {bottomAvg:#,0}";
 
         UpdateSliderUI(gameSpeed);
     }
+    #endregion
 
+    #region 테스트 UI_추가
+    private void ChangeGameSpeed(float _value)
+        => ApplySlider(ref gameSpeed, _value, _v => GameManager.Instance?.SetSpeed(_v, true));
+    #endregion
+
+    #region 테스트 UI_클릭
     public void OnClickTest()
     {
         testUI.SetActive(!testUI.activeSelf);
@@ -329,7 +338,16 @@ public class TestManager : MonoBehaviour
 
         UpdateTestUI();
     }
-    public void OnClickReplay() => GameManager.Instance?.Replay();
+    public void OnClickReplay()
+    {
+        testUI.SetActive(false);
+        OnClickReset();
+        ChangeGameSpeed(gameSpeed.maxValue);
+        GameManager.Instance?.Replay();
+    }
+    #endregion
+
+    #region 프로퍼티
     #endregion
 }
 #endif

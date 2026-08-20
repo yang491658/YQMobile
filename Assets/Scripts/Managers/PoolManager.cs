@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Threading;
+using Unity.Burst.Intrinsics;
 using UnityEngine;
 
 public interface IPoolable
@@ -80,15 +82,18 @@ public class PoolManager : MonoBehaviour
 
     private void LateUpdate()
     {
+        if (pending.Count == 0) return;
+
         for (int i = pending.Count - 1; i >= 0; i--)
         {
             GameObject obj = pending[i];
 
-            if (obj == null || obj.activeSelf)
-            { pending.RemoveAt(i); continue; }
+            if (obj != null && !obj.activeSelf)
+            {
+                int id = obj.GetInstanceID();
+                obj.transform.SetParent(parent.TryGetValue(id, out var p) ? p : transform, false);
+            }
 
-            int id = obj.GetInstanceID();
-            obj.transform.SetParent(parent.TryGetValue(id, out var p) ? p : transform, false);
             pending.RemoveAt(i);
         }
     }
@@ -120,11 +125,7 @@ public class PoolManager : MonoBehaviour
             pool.Add(key, stack);
         }
 
-        int alive = 0;
-        foreach (var o in stack)
-            if (o != null) alive++;
-
-        int need = _count - alive;
+        int need = _count - GetAlive(stack);
         if (need <= 0) return;
 
         for (int i = 0; i < need; i++)
@@ -173,11 +174,7 @@ public class PoolManager : MonoBehaviour
             {
                 made.TryGetValue(key, out int activeCount);
 
-                int waitCount = 0;
-                foreach (var o in stack)
-                    if (o != null) waitCount++;
-
-                if (activeCount + waitCount >= pLimit.limit)
+                if (activeCount + GetAlive(stack) >= pLimit.limit)
                     return null;
             }
 
@@ -225,10 +222,7 @@ public class PoolManager : MonoBehaviour
 
         if (policy.TryGetValue(key, out var p) && p.keep > 0)
         {
-            int alive = 0;
-            foreach (var o in stack) if (o != null) alive++;
-
-            if (alive >= p.keep)
+            if (GetAlive(stack) >= p.keep)
             {
                 origin.Remove(id);
                 hook.Remove(id);
@@ -263,6 +257,16 @@ public class PoolManager : MonoBehaviour
     #endregion
 
     #region 유틸
+    private int GetAlive(Stack<GameObject> _stack)
+    {
+        int alive = 0;
+
+        foreach (GameObject obj in _stack)
+            if (obj != null) alive++;
+
+        return alive;
+    }
+
     private Policy GetPolicy(GameObject _prefab)
     {
         return default;
@@ -298,13 +302,12 @@ public class PoolManager : MonoBehaviour
             if (!policy.TryGetValue(kv.Key, out var p) || p == null)
                 continue;
 
-            int alive = 0;
-            foreach (var o in kv.Value)
-                if (o != null) alive++;
-
-            p.wait = alive;
+            p.wait = GetAlive(kv.Value);
         }
     }
 #endif
+    #endregion
+
+    #region 프로퍼티
     #endregion
 }

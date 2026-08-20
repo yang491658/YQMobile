@@ -74,7 +74,7 @@ public class SoundManager : MonoBehaviour
     #region 배경음
     public void PlayBGM(AudioClip _clip)
     {
-        if (bgmSource == null || IsBGMMuted()) return;
+        if (bgmSource == null || IsBGMMuted) return;
 
         bgmSource.clip = _clip;
         bgmSource.Play();
@@ -96,7 +96,7 @@ public class SoundManager : MonoBehaviour
 
     public void ToggleBGM()
     {
-        if (!IsBGMMuted() && bgmVol > 0f)
+        if (!IsBGMMuted && bgmVol > 0f)
         {
             prevBgmVol = bgmVol;
             SetBGMVolume(0f);
@@ -108,7 +108,7 @@ public class SoundManager : MonoBehaviour
     #region 효과음
     public void PlaySFX(AudioClip _clip)
     {
-        if (sfxSource == null || IsSFXMuted()) return;
+        if (sfxSource == null || IsSFXMuted) return;
 
         sfxSource.PlayOneShot(_clip);
     }
@@ -121,7 +121,7 @@ public class SoundManager : MonoBehaviour
 
     public AudioSource PlaySFXLoop(AudioClip _clip, Transform _owner)
     {
-        var src = _owner.gameObject.AddComponent<AudioSource>();
+        AudioSource src = _owner.gameObject.AddComponent<AudioSource>();
         src.clip = _clip;
         src.loop = true;
         src.playOnAwake = false;
@@ -129,6 +129,7 @@ public class SoundManager : MonoBehaviour
         src.mute = (sfxVol <= 0f);
         src.spatialBlend = 0f;
         src.Play();
+
         sfxLoops.Add(src);
         return src;
     }
@@ -143,10 +144,11 @@ public class SoundManager : MonoBehaviour
     {
         sfxLoops.RemoveWhere(_src => _src == null);
 
-        if (_on)
-            foreach (var src in sfxLoops) src.Pause();
-        else
-            foreach (var src in sfxLoops) src.UnPause();
+        foreach (var src in sfxLoops)
+        {
+            if (_on) src.Pause();
+            else src.UnPause();
+        }
     }
 
     public void StopSFXLoop(AudioSource _src)
@@ -158,7 +160,7 @@ public class SoundManager : MonoBehaviour
 
     public void ToggleSFX()
     {
-        if (!IsSFXMuted() && sfxVol > 0f)
+        if (!IsSFXMuted && sfxVol > 0f)
         {
             prevSfxVol = sfxVol;
             SetSFXVolume(0f);
@@ -225,21 +227,21 @@ public class SoundManager : MonoBehaviour
     {
         bgmDict.Clear();
         if (soundClips.bgmClips != null)
-            foreach (var c in soundClips.bgmClips)
-                if (c != null) bgmDict.TryAdd(c.name, c);
+            foreach (AudioClip clip in soundClips.bgmClips)
+                if (clip != null) bgmDict.TryAdd(clip.name, clip);
 
         sfxDict.Clear();
         if (soundClips.sfxClips != null)
-            foreach (var c in soundClips.sfxClips)
-                if (c != null) sfxDict.TryAdd(c.name, c);
+            foreach (AudioClip clip in soundClips.sfxClips)
+                if (clip != null) sfxDict.TryAdd(clip.name, clip);
     }
     #endregion
 
-    #region GET
-    public float GetBGMVolume() => bgmVol;
-    public float GetSFXVolume() => sfxVol;
+    #region 프로퍼티
+    public float BGMVolume => bgmVol;
+    public float SFXVolume => sfxVol;
 
-    public bool IsBGMMuted() => bgmSource != null && bgmSource.mute;
-    public bool IsSFXMuted() => sfxSource != null && sfxSource.mute;
+    public bool IsBGMMuted => bgmSource != null && bgmSource.mute;
+    public bool IsSFXMuted => sfxSource != null && sfxSource.mute;
     #endregion
 }

@@ -113,8 +113,7 @@ public class UIManager : MonoBehaviour
             var assets = AssetDatabase.LoadAllAssetsAtPath(path);
             foreach (var obj in assets)
             {
-                var s = obj as Sprite;
-                if (s != null && s.name == _sprite)
+                if (obj is Sprite s && s.name == _sprite)
                 {
                     _list.Add(s);
                     return;
@@ -155,17 +154,17 @@ public class UIManager : MonoBehaviour
     private void OnEnable()
     {
         GameManager.Instance.OnChangeSpeed += UpdateSpeed;
-        speedSlider.minValue = GameManager.Instance.GetMinSpeed();
-        speedSlider.maxValue = GameManager.Instance.GetMaxSpeed();
-        speedSlider.value = GameManager.Instance.GetSpeed();
+        speedSlider.minValue = GameManager.Instance.MinSpeed;
+        speedSlider.maxValue = GameManager.Instance.MaxSpeed;
+        speedSlider.value = GameManager.Instance.Speed;
         speedSlider.onValueChanged.AddListener(GameManager.Instance.SetSpeed);
 
         GameManager.Instance.OnChangeScore += UpdateScore;
 
         SoundManager.Instance.OnChangeVolume += UpdateVolume;
-        bgmSlider.value = SoundManager.Instance.GetBGMVolume();
+        bgmSlider.value = SoundManager.Instance.BGMVolume;
         bgmSlider.onValueChanged.AddListener(SoundManager.Instance.SetBGMVolume);
-        sfxSlider.value = SoundManager.Instance.GetSFXVolume();
+        sfxSlider.value = SoundManager.Instance.SFXVolume;
         sfxSlider.onValueChanged.AddListener(SoundManager.Instance.SetSFXVolume);
 
         OnOpenUI += GameManager.Instance.Pause;
@@ -244,27 +243,34 @@ public class UIManager : MonoBehaviour
 
     public string FormatNumber(int _number, bool _full = false)
     {
-        if (_number < 10000)
-            return _full ? _number.ToString("0000") : _number.ToString();
+        long number = _number;
+        bool negative = number < 0L;
+        if (negative) number = -number;
 
-        for (int i = units.Length; i > 0; i--)
+        if (number < 10000L)
         {
-            float n = Mathf.Pow(1000f, i);
-            if (_number >= n)
-            {
-                float value = _number / n;
-
-                if (value >= 100f)
-                    return Mathf.RoundToInt(value).ToString() + units[i - 1];
-
-                if (value >= 10f)
-                    return value.ToString("0.0") + units[i - 1];
-
-                return value.ToString("0.00") + units[i - 1];
-            }
+            string text = _full ? number.ToString("0000") : number.ToString();
+            return negative ? $"-{text}" : text;
         }
 
-        return _full ? _number.ToString("0000") : _number.ToString();
+        double value = number;
+        int unitIndex = -1;
+
+        while (value >= 1000d && unitIndex < units.Length - 1)
+        {
+            value /= 1000d;
+            unitIndex++;
+        }
+
+        string result;
+        if (value >= 100d)
+            result = Mathf.RoundToInt((float)value).ToString() + units[unitIndex];
+        else if (value >= 10d)
+            result = value.ToString("0.0") + units[unitIndex];
+        else
+            result = value.ToString("0.00") + units[unitIndex];
+
+        return negative ? "-" + result : result;
     }
     #endregion
 
@@ -320,8 +326,7 @@ public class UIManager : MonoBehaviour
         playTime = 0f;
         playTimeSec = -1;
 
-        UpdatePlayTime();
-        UpdateScore(GameManager.Instance.GetScore());
+        UpdateScore(GameManager.Instance.Score);
 
         OpenUI(false);
         StartCountdown();
@@ -329,8 +334,10 @@ public class UIManager : MonoBehaviour
 
     private void UpdateSpeed(float _speed)
     {
-        if (!Mathf.Approximately(speedSlider.value, _speed))
-            speedSlider.value = _speed;
+        float value = Mathf.Clamp(_speed, speedSlider.minValue, speedSlider.maxValue);
+
+        if (!Mathf.Approximately(speedSlider.value, value))
+            speedSlider.SetValueWithoutNotify(value);
     }
 
     private void UpdatePlayTime()
@@ -339,8 +346,7 @@ public class UIManager : MonoBehaviour
         if (total == playTimeSec) return;
         playTimeSec = total;
 
-        string s = (total / 60).ToString("00") + ":" + (total % 60).ToString("00");
-        playTimeText.text = s;
+        playTimeText.text = $"{total / 60:00}:{total % 60:00}";
     }
 
     private void UpdateScore(int _score)
@@ -357,12 +363,12 @@ public class UIManager : MonoBehaviour
         {
             case SoundType.BGM:
                 if (!Mathf.Approximately(bgmSlider.value, _volume))
-                    bgmSlider.value = _volume;
+                    bgmSlider.SetValueWithoutNotify(_volume);
                 break;
 
             case SoundType.SFX:
                 if (!Mathf.Approximately(sfxSlider.value, _volume))
-                    sfxSlider.value = _volume;
+                    sfxSlider.SetValueWithoutNotify(_volume);
                 break;
 
             default: return;
@@ -373,13 +379,13 @@ public class UIManager : MonoBehaviour
     private void UpdateSoundIcon()
     {
         if (bgmIcons.Count >= 2)
-            bgmIcon.sprite = SoundManager.Instance.IsBGMMuted() ? bgmIcons[1] : bgmIcons[0];
+            bgmIcon.sprite = SoundManager.Instance.IsBGMMuted ? bgmIcons[1] : bgmIcons[0];
 
         if (sfxIcons.Count >= 3)
         {
-            if (SoundManager.Instance.IsSFXMuted())
+            if (SoundManager.Instance.IsSFXMuted)
                 sfxIcon.sprite = sfxIcons[2];
-            else if (SoundManager.Instance?.GetSFXVolume() < 0.2f)
+            else if (SoundManager.Instance?.SFXVolume < 0.2f)
                 sfxIcon.sprite = sfxIcons[1];
             else
                 sfxIcon.sprite = sfxIcons[0];
@@ -400,7 +406,7 @@ public class UIManager : MonoBehaviour
 
     public void OnClickOkay()
     {
-        var action = confirmAction;
+        System.Action action = confirmAction;
         OpenConfirm(false);
         action?.Invoke();
     }
@@ -419,14 +425,19 @@ public class UIManager : MonoBehaviour
 
         Canvas canvas = inGameUI.GetComponentInParent<Canvas>();
         BannerHeightPx = _margin * canvas.scaleFactor;
+
+        EntityManager.Instance?.SetEntity();
     }
     #endregion
 
     #region GET
-#if TEST_Manager
-    public bool GetOnSetting() => settingUI.activeSelf;
-    public bool GetOnConfirm() => confirmUI.activeSelf;
-    public bool GetOnResult() => resultUI.activeSelf;
-#endif
     #endregion
+
+#if TEST_Manager
+    #region 프로퍼티
+    public bool OnSetting => settingUI.activeSelf;
+    public bool OnConfirm => confirmUI.activeSelf;
+    public bool OnResult => resultUI.activeSelf;
+    #endregion
+#endif
 }
